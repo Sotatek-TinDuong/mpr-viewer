@@ -13,11 +13,9 @@ import presets from './presets.js';
 
 window.cornerstoneWADOImageLoader = cornerstoneWADOImageLoader;
 
-const url = 'https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs';
-const studyInstanceUID =
-  '1.3.6.1.4.1.14519.5.2.1.2744.7002.373729467545468642229382466905';
-const ctSeriesInstanceUID =
-  '1.3.6.1.4.1.14519.5.2.1.2744.7002.182837959725425690842769990419';
+const url = 'http://localhost:8080/dcm4chee-arc/aets/DCM4CHEE/rs';
+const studyInstanceUID = '1.2.410.200010.82.116201101132088';
+const ctSeriesInstanceUID = '1.3.12.2.1107.5.1.4.24575.4.0.5895009141053064';
 const searchInstanceOptions = {
   studyInstanceUID,
 };

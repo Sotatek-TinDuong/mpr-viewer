@@ -121,6 +121,8 @@ class VTKCornerstonePaintingSyncExample extends Component {
       return cornerstone.loadAndCacheImage(imageId);
     });
 
+    console.log(promises)
+
     Promise.all(promises).then(() => {
       const displaySetInstanceUid = '12345';
       const cornerstoneViewportData = {
