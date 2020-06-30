@@ -100,6 +100,7 @@ module.exports = {
   // Fix for `cornerstone-wado-image-loader` fs dep
   node: { fs: 'empty' },
   devServer: {
+    host: '0.0.0.0',
     hot: true,
     open: true,
     port: 3001,
