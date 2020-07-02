@@ -9,6 +9,7 @@ import VTKLoadImageDataExample from './VTKLoadImageDataExample.js';
 import VTKCrosshairsExample from './VTKCrosshairsExample.js';
 import VTKMPRRotateExample from './VTKMPRRotateExample.js';
 import VTKVolumeRenderingExample from './VTKVolumeRenderingExample.js';
+import DrawToolsExample from './drawTools.js';
 
 function LinkOut({ href, text }) {
   return (
@@ -83,6 +84,12 @@ function Index() {
       text:
         'Generating vtkjs imagedata from cornerstone images and displaying them in a VTK viewport.',
     },
+    {
+      title: 'DrawTool Example',
+      url: '/draw-tools',
+      text:
+        'Demo draw tool',
+    },
   ];
 
   const exampleComponents = examples.map(e => {
@@ -137,6 +144,9 @@ function AppRouter() {
 
   // TODO: There is definitely a better way to do this
   const basic = () => Example({ children: <VTKBasicExample /> });
+
+  const drawTools = () => Example({ children: <DrawToolsExample /> });
+
   const fusion = () => Example({ children: <VTKFusionExample /> });
   const painting = () => Example({ children: <VTKMPRPaintingExample /> });
   const loadImage = () => Example({ children: <VTKLoadImageDataExample /> });
@@ -158,6 +168,7 @@ function AppRouter() {
         <Route exact path="/rotate" render={rotateMPR} />
         <Route exact path="/volume-rendering" render={volumeRendering} />
         <Route exact path="/cornerstone-load-image-data" render={loadImage} />
+        <Route exact path="/draw-tools" render={drawTools} />
         <Route exact component={Index} />
       </Switch>
     </Router>
