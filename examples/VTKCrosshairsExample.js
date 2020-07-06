@@ -16,6 +16,7 @@ import presets from './presets.js';
 import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction';
 import vtkPiecewiseFunction from 'vtk.js/Sources/Common/DataModel/PiecewiseFunction';
 import vtkColorMaps from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction/ColorMaps';
+import vtkHttpDataSetReader from 'vtk.js/Sources/IO/Core/HttpDataSetReader';
 import vtkVolume from 'vtk.js/Sources/Rendering/Core/Volume';
 import vtkVolumeMapper from 'vtk.js/Sources/Rendering/Core/VolumeMapper';
 import vtkImageData from 'vtk.js/Sources/Common/DataModel/ImageData';
@@ -318,6 +319,64 @@ function createStudyImageIds(baseUrl, studySearchOptions) {
 //   `dicomweb://${ROOT_URL}/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032221.5.dcm`,
 // ];
 
+function createLabelMapImageData(backgroundImageData) {
+  const labelMapData = vtkImageData.newInstance(
+    backgroundImageData.get('spacing', 'origin', 'direction')
+  );
+  labelMapData.setDimensions(backgroundImageData.getDimensions());
+  labelMapData.computeTransforms();
+
+  const values = new Float32Array(backgroundImageData.getNumberOfPoints());
+  const dataArray = vtkDataArray.newInstance({
+    numberOfComponents: 1, // labelmap with single component
+    values,
+  });
+  labelMapData.getPointData().setScalars(dataArray);
+
+  return labelMapData;
+}
+
+function createVolumeRenderingActor(imageData) {
+  const mapper = vtkVolumeMapper.newInstance();
+  mapper.setInputData(imageData);
+
+  const actor = vtkVolume.newInstance();
+  actor.setMapper(mapper);
+
+  const rgbTransferFunction = actor.getProperty().getRGBTransferFunction(0);
+  const range = imageData
+    .getPointData()
+    .getScalars()
+    .getRange();
+  rgbTransferFunction.setMappingRange(range[0], range[1]);
+
+  // create color and opacity transfer functions
+  const cfun = vtkColorTransferFunction.newInstance();
+  cfun.addRGBPoint(range[0], 0.4, 0.2, 0.0);
+  cfun.addRGBPoint(range[1], 1.0, 1.0, 1.0);
+
+  const ofun = vtkPiecewiseFunction.newInstance();
+  ofun.addPoint(0.0, 0.0);
+  ofun.addPoint(1000.0, 0.3);
+  ofun.addPoint(6000.0, 0.9);
+
+  actor.getProperty().setRGBTransferFunction(0, cfun);
+  actor.getProperty().setScalarOpacity(0, ofun);
+  actor.getProperty().setScalarOpacityUnitDistance(0, 4.5);
+  actor.getProperty().setInterpolationTypeToLinear();
+  actor.getProperty().setUseGradientOpacity(0, true);
+  actor.getProperty().setGradientOpacityMinimumValue(0, 15);
+  actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0);
+  actor.getProperty().setGradientOpacityMaximumValue(0, 100);
+  actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0);
+  actor.getProperty().setAmbient(0.7);
+  actor.getProperty().setDiffuse(0.7);
+  actor.getProperty().setSpecular(0.3);
+  actor.getProperty().setSpecularPower(8.0);
+
+  return actor;
+}
+
 class VTKCrosshairsExample extends Component {
   state = {
     volumes: [],
@@ -326,9 +385,12 @@ class VTKCrosshairsExample extends Component {
     ctTransferFunctionPresetId: 'vtkMRMLVolumePropertyNode4',
     petColorMapId: 'hsv',
     cornerstoneViewportData: null,
-    focusedWidgetId: null,
+    focusedWidgetId: "PaintWidget",
     isSetup: false,
     activeToolName: 'Brush',
+    paintFilterBackgroundImageData: null,
+    paintFilterLabelMapImageData: null,
+    threshold: 10,
   };
 
   async componentDidMount() {
@@ -368,17 +430,25 @@ class VTKCrosshairsExample extends Component {
         .getScalars()
         .getRange();
 
-      const mapper = vtkVolumeMapper.newInstance();
       const ctVol = vtkVolume.newInstance();
-      const rgbTransferFunction = ctVol.getProperty().getRGBTransferFunction(0);
+      const mapper = vtkVolumeMapper.newInstance();
 
-      mapper.setInputData(ctImageData);
-      mapper.setMaximumSamplesPerRay(2000);
-      rgbTransferFunction.setRange(range[0], range[1]);
       ctVol.setMapper(mapper);
+      mapper.setInputData(ctImageData);
+
+      const rgbTransferFunction = ctVol.getProperty().getRGBTransferFunction(0);
+      rgbTransferFunction.setMappingRange(500, 3000);
+      rgbTransferFunction.setRange(range[0], range[1]);
+
+      // mapper.setMaximumSamplesPerRay(2000);
+      const labelMapImageData = createLabelMapImageData(ctImageData);
+      const volumeRenderingActor = createVolumeRenderingActor(ctImageData);
 
       this.setState({
         volumes: [ctVol],
+        volumeRenderingVolumes: [volumeRenderingActor],
+        paintFilterBackgroundImageData: ctImageData,
+        paintFilterLabelMapImageData: labelMapImageData,
       });
     });
 
@@ -588,7 +658,6 @@ class VTKCrosshairsExample extends Component {
     const shouldDisplayCrosshairs = !displayCrosshairs;
 
     apis.forEach(api => {
-      console.log(api);
       const { svgWidgetManager, svgWidgets } = api;
       svgWidgets.crosshairsWidget.setDisplay(shouldDisplayCrosshairs);
 
@@ -754,6 +823,13 @@ class VTKCrosshairsExample extends Component {
               volumes={this.state.volumes}
               onCreated={this.storeApi(0)}
               orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === "PaintWidget"}
             />
           </div>
           <div className="col-sm-3">
@@ -762,6 +838,13 @@ class VTKCrosshairsExample extends Component {
               volumes={this.state.volumes}
               onCreated={this.storeApi(1)}
               orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === "PaintWidget"}
             />
           </div>
           <div className="col-sm-3">
@@ -770,6 +853,13 @@ class VTKCrosshairsExample extends Component {
               volumes={this.state.volumes}
               onCreated={this.storeApi(2)}
               orientation={{ sliceNormal: [0, 0, 1], viewUp: [0, -1, 0] }}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === "PaintWidget"}
             />
           </div>
           <div className="col-sm-3">
@@ -777,6 +867,13 @@ class VTKCrosshairsExample extends Component {
             <View3D
               volumes={this.state.volumeRenderingVolumes}
               onCreated={this.saveApiReference}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === 'PaintWidget'}
             />
           </div>
         </div>
