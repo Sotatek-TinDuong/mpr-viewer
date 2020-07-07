@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
+import '../public/css/style.css';
 import VTKBasicExample from './VTKBasicExample.js';
 import VTKFusionExample from './VTKFusionExample.js';
 import VTKMPRPaintingExample from './VTKMPRPaintingExample.js';
@@ -130,7 +131,7 @@ function Index() {
 
 function Example(props) {
   return (
-    <div className="container">
+    <div>
       {/* <h5>
         <Link to="/">Back to Examples</Link>
       </h5> */}

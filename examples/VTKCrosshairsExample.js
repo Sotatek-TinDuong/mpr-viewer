@@ -385,12 +385,13 @@ class VTKCrosshairsExample extends Component {
     ctTransferFunctionPresetId: 'vtkMRMLVolumePropertyNode4',
     petColorMapId: 'hsv',
     cornerstoneViewportData: null,
-    focusedWidgetId: "PaintWidget",
+    focusedWidgetId: null,
     isSetup: false,
     activeToolName: 'Brush',
     paintFilterBackgroundImageData: null,
     paintFilterLabelMapImageData: null,
     threshold: 10,
+    activeCrosshairs: true
   };
 
   async componentDidMount() {
@@ -701,16 +702,59 @@ class VTKCrosshairsExample extends Component {
   }
 
   handleActiveTool = tool => {
-    this.setState({ activeToolName: tool })
+    switch (tool) {
+      case "label":
+        this.setState({
+          focusedWidgetId: 'PaintWidget',
+          activeCrosshairs: false,
+        })
+        break;
+
+      case "rotate":
+        this.setState({
+          focusedWidgetId: null,
+          activeCrosshairs: false,
+        });
+        break;
+
+      default:
+        this.setState({
+          focusedWidgetId: null,
+          activeCrosshairs: true
+        });
+        break;
+    }
+  };
+
+  clearLabelMap = () => {
+    const labelMapImageData = this.state.paintFilterLabelMapImageData;
+    const numberOfPoints = labelMapImageData.getNumberOfPoints();
+    const values = new Float32Array(numberOfPoints);
+    const dataArray = vtkDataArray.newInstance({
+      numberOfComponents: 1, // labelmap with single component
+      values,
+    });
+
+    labelMapImageData.getPointData().setScalars(dataArray);
+    labelMapImageData.modified();
+
+    this.rerenderAll();
   };
 
   render() {
+    const loading = <div className="loading-box">
+      <div className="box-inside">
+        <img src="images/loading.gif" alt="" />
+        <h4>Loading...</h4>
+      </div>
+    </div>
+
     if (
       !this.state.volumes ||
       !this.state.volumes.length ||
       !this.state.volumeRenderingVolumes
     ) {
-      return <h4>Loading...</h4>;
+      return loading;
     }
 
 
@@ -728,8 +772,9 @@ class VTKCrosshairsExample extends Component {
 
     return (
       <div>
-        <div className="row">
-          <div className="col-xs-4">
+        <div className="sidebar">
+          {this.state.activeCrosshairs ? <h1>A</h1> : <h1>B</h1>}
+          <div className="set-slab">
             <label htmlFor="set-slab-thickness">SlabThickness: </label>
             <input
               id="set-slab-thickness"
@@ -739,6 +784,9 @@ class VTKCrosshairsExample extends Component {
               max="5000"
               onChange={this.handleSlabThicknessChange.bind(this)}
             />
+          </div>
+
+          <div className="toggle-crosshair">
             <p>Toggle crosshairs on/off.</p>
             <button onClick={this.toggleCrosshairs}>
               {this.state.displayCrosshairs
@@ -746,29 +794,29 @@ class VTKCrosshairsExample extends Component {
                 : 'Show Crosshairs'}
             </button>
           </div>
-        </div>
-        <div className="row">
-          <div className="col-xs-4">
+          <div>
+            <label htmlFor="select_CT_xfer_fn">
+              CT Transfer Function Preset (for Volume Rendering):{' '}
+            </label>
             <div>
-              <label htmlFor="select_CT_xfer_fn">
-                CT Transfer Function Preset (for Volume Rendering):{' '}
-              </label>
-              <div>
-                <select
-                  id="select_CT_xfer_fn"
-                  value={this.state.ctTransferFunctionPresetId}
-                  onChange={this.handleChangeCTTransferFunction}
-                >
-                  {ctTransferFunctionPresetOptions}
-                </select>
-                <div>-- Volums render: <h5>{progressString}</h5></div>
-              </div>
+              <select
+                id="select_CT_xfer_fn"
+                value={this.state.ctTransferFunctionPresetId}
+                onChange={this.handleChangeCTTransferFunction}
+              >
+                {ctTransferFunctionPresetOptions}
+              </select>
+              <div>-- Volums render: <h5>{progressString}</h5></div>
             </div>
           </div>
-          <hr />
-        </div>
-
-        {/* <div className="row" style={{ marginBottom: '15px' }}>
+          <div>
+            <button type="button" className="btn btn-warning" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('crosshair')}>Crosshairs</button>
+            <button type="button" className="btn btn-primary" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('rotate')}>Rotate</button>
+            <button type="button" className="btn btn-danger" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('label')}>Label</button>
+            <button type="button" className="btn btn-default" style={{ marginRight: '6px' }} onClick={() => this.clearLabelMap()}>Clear Label</button>
+          </div>
+          <div className="button-groups" style={{ marginBottom: '30px' }}>
+            {/* <div className="row" style={{ marginBottom: '15px' }}>
           <div className="col-xs-12">
             <button type="button" className="btn btn-warning" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('Brush')}>Brush</button>
             <button type="button" className="btn btn-primary" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('Length')}>Length</button>
@@ -782,9 +830,7 @@ class VTKCrosshairsExample extends Component {
             <button type="button" className="btn btn-danger" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('Magnify')}>Magnify</button>
           </div>
         </div> */}
-
-        <div className="row" style={{ marginBottom: '30px' }}>
-          {/* <div className="col-xs-4" style={{ height: '360px' }}>
+            {/* <div className="col-xs-4" style={{ height: '360px' }}>
             <span className="label label-default">Test brush tool</span>
             {this.state.cornerstoneViewportData && (
               <CornerstoneViewport
@@ -813,45 +859,17 @@ class VTKCrosshairsExample extends Component {
               />
             )}
           </div> */}
-          {/* <div className="col-sm-4">{this.state.activeToolName}</div> */}
+            {/* <div className="col-sm-4">{this.state.activeToolName}</div> */}
+          </div>
         </div>
 
-        <div className="row">
-          <div className="col-sm-3">
-            <span className="label label-primary">Coronal</span>
+        <div className="mpr-content">
+
+          <div className="col-xs-6 box-item-mpr" style={{ width: "50%", height: "50%" }}>
+            <span className="label box-name label-danger">Axial</span>
             <View2D
               volumes={this.state.volumes}
-              onCreated={this.storeApi(0)}
-              orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
-              paintFilterBackgroundImageData={
-                this.state.paintFilterBackgroundImageData
-              }
-              paintFilterLabelMapImageData={
-                this.state.paintFilterLabelMapImageData
-              }
-              painting={this.state.focusedWidgetId === "PaintWidget"}
-            />
-          </div>
-          <div className="col-sm-3">
-            <span className="label label-success">Sagittal</span>
-            <View2D
-              volumes={this.state.volumes}
-              onCreated={this.storeApi(1)}
-              orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
-              paintFilterBackgroundImageData={
-                this.state.paintFilterBackgroundImageData
-              }
-              paintFilterLabelMapImageData={
-                this.state.paintFilterLabelMapImageData
-              }
-              painting={this.state.focusedWidgetId === "PaintWidget"}
-            />
-          </div>
-          <div className="col-sm-3">
-            <span className="label label-danger">Axial</span>
-            <View2D
-              volumes={this.state.volumes}
-              onCreated={this.storeApi(2)}
+              onCreated={() => { }}
               orientation={{ sliceNormal: [0, 0, 1], viewUp: [0, -1, 0] }}
               paintFilterBackgroundImageData={
                 this.state.paintFilterBackgroundImageData
@@ -862,8 +880,41 @@ class VTKCrosshairsExample extends Component {
               painting={this.state.focusedWidgetId === "PaintWidget"}
             />
           </div>
-          <div className="col-sm-3">
-            <span className="label label-warning">3D Volums</span>
+
+          <div className="col-xs-6 box-item-mpr" style={{ width: "50%", height: "50%" }}>
+            <span className="label box-name label-success">Sagittal</span>
+            <View2D
+              volumes={this.state.volumes}
+              onCreated={() => { }}
+              orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === "PaintWidget"}
+            />
+          </div>
+
+          <div className="col-xs-6 box-item-mpr" style={{ width: "50%", height: "50%", marginTop: "30px" }}>
+            <span className="label box-name label-primary">Coronal</span>
+            <View2D
+              volumes={this.state.volumes}
+              onCreated={() => { }}
+              orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === "PaintWidget"}
+            />
+          </div>
+
+          <div className="col-xs-6 box-item-mpr" style={{ width: "50%", height: "50%", marginTop: "30px" }}>
+            <span className="label box-name label-warning">3D Volums</span>
             <View3D
               volumes={this.state.volumeRenderingVolumes}
               onCreated={this.saveApiReference}
@@ -877,7 +928,7 @@ class VTKCrosshairsExample extends Component {
             />
           </div>
         </div>
-      </div>
+      </div >
     );
   }
 }
