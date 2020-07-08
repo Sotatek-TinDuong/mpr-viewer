@@ -8,6 +8,7 @@ import {
   loadImageData,
   vtkInteractorStyleMPRCrosshairs,
   vtkSVGCrosshairsWidget,
+  vtkInteractorStyleMPRRotate,
 } from '@vtk-viewport';
 import { api as dicomwebClientApi } from 'dicomweb-client';
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
@@ -309,7 +310,6 @@ class VTKCrosshairsExample extends Component {
     paintFilterBackgroundImageData: null,
     paintFilterLabelMapImageData: null,
     threshold: 10,
-    activeCrosshairs: true,
   };
 
   async componentDidMount() {
@@ -505,26 +505,74 @@ class VTKCrosshairsExample extends Component {
   }
 
   handleActiveTool = tool => {
+    const apis = this.apis;
     switch (tool) {
       case 'label':
         this.setState({
           focusedWidgetId: 'PaintWidget',
-          activeCrosshairs: false,
         });
         break;
 
       case 'rotate':
         this.setState({
           focusedWidgetId: null,
-          activeCrosshairs: false,
+        });
+
+        apis.forEach(api => {
+          const istyle = vtkInteractorStyleMPRRotate.newInstance();
+          const renderWindow = api.genericRenderWindow.getRenderWindow();
+
+          api.setInteractorStyle({ istyle });
+          renderWindow.render();
         });
         break;
 
-      default:
+      case 'crosshair':
         this.setState({
           focusedWidgetId: null,
-          activeCrosshairs: true,
         });
+
+        apis.forEach((api, viewportIndex) => {
+          const renderWindow = api.genericRenderWindow.getRenderWindow();
+          // Add svg widget
+          api.addSVGWidget(
+            vtkSVGCrosshairsWidget.newInstance(),
+            'crosshairsWidget'
+          );
+
+          const istyle = vtkInteractorStyleMPRCrosshairs.newInstance();
+
+          // add istyle
+          api.setInteractorStyle({
+            istyle,
+            configuration: { apis, apiIndex: viewportIndex },
+          });
+
+          // set blend mode to MIP.
+          // const mapper = api.volumes[0].getMapper();
+          // if (mapper.setBlendModeToMaximumIntensity) {
+          //   mapper.setBlendModeToMaximumIntensity();
+          // }
+
+          api.setSlabThickness(0.1);
+
+          const { svgWidgetManager, svgWidgets } = api;
+          svgWidgets.crosshairsWidget.setDisplay(true);
+
+          svgWidgetManager.render();
+
+          renderWindow.render();
+
+          // Its up to the layout manager of an app to know how many viewports are being created.
+          if (apis[0] && apis[1] && apis[2]) {
+            //const api = apis[0];
+
+            const api = apis[0];
+
+            api.svgWidgets.crosshairsWidget.resetCrosshairs(apis, 0);
+          }
+        });
+
         break;
     }
   };
@@ -658,7 +706,7 @@ class VTKCrosshairsExample extends Component {
             <span className="label box-name label-danger">Axial</span>
             <View2D
               volumes={this.state.volumes}
-              onCreated={() => {}}
+              onCreated={this.storeApi(2)}
               orientation={{ sliceNormal: [0, 0, 1], viewUp: [0, -1, 0] }}
               paintFilterBackgroundImageData={
                 this.state.paintFilterBackgroundImageData
@@ -677,7 +725,7 @@ class VTKCrosshairsExample extends Component {
             <span className="label box-name label-success">Sagittal</span>
             <View2D
               volumes={this.state.volumes}
-              onCreated={() => {}}
+              onCreated={this.storeApi(1)}
               orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
               paintFilterBackgroundImageData={
                 this.state.paintFilterBackgroundImageData
@@ -696,7 +744,7 @@ class VTKCrosshairsExample extends Component {
             <span className="label box-name label-primary">Coronal</span>
             <View2D
               volumes={this.state.volumes}
-              onCreated={() => {}}
+              onCreated={this.storeApi(0)}
               orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
               paintFilterBackgroundImageData={
                 this.state.paintFilterBackgroundImageData
