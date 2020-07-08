@@ -610,7 +610,7 @@ class VTKCrosshairsExample extends Component {
                 {ctTransferFunctionPresetOptions}
               </select>
               <div>
-                -- Volums render: <h5>{progressString}</h5>
+                --- Volums render: <h5>{progressString}</h5>
               </div>
             </div>
           </div>
