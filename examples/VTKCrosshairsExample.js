@@ -9,38 +9,30 @@ import {
   vtkInteractorStyleMPRCrosshairs,
   vtkSVGCrosshairsWidget,
 } from '@vtk-viewport';
-import CornerstoneViewport from 'react-cornerstone-viewport';
 import { api as dicomwebClientApi } from 'dicomweb-client';
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import presets from './presets.js';
 import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction';
 import vtkPiecewiseFunction from 'vtk.js/Sources/Common/DataModel/PiecewiseFunction';
-import vtkColorMaps from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction/ColorMaps';
 import vtkVolume from 'vtk.js/Sources/Rendering/Core/Volume';
 import vtkVolumeMapper from 'vtk.js/Sources/Rendering/Core/VolumeMapper';
 import vtkImageData from 'vtk.js/Sources/Common/DataModel/ImageData';
 import vtkDataArray from 'vtk.js/Sources/Common/Core/DataArray';
 import './initCornerstone.js';
-import cornerstone from 'cornerstone-core';
-import cornerstoneTools from 'cornerstone-tools';
 
 window.cornerstoneWADOImageLoader = cornerstoneWADOImageLoader;
 
 const url = 'http://localhost:8080/dcm4chee-arc/aets/DCM4CHEE/rs';
-const urlPageString = window.location.href
+const urlPageString = window.location.href;
 const formatUrl = new URL(urlPageString);
-const studyUid = formatUrl.searchParams.get("studyUid")
-const serieUid = formatUrl.searchParams.get("serieUid")
+const studyUid = formatUrl.searchParams.get('studyUid');
+const serieUid = formatUrl.searchParams.get('serieUid');
 
-const studyInstanceUID = studyUid
-const ctSeriesInstanceUID = serieUid
+const studyInstanceUID = studyUid;
+const ctSeriesInstanceUID = serieUid;
 const searchInstanceOptions = {
   studyInstanceUID,
 };
-
-// const { EVENTS } = cornerstoneTools;
-// window.cornerstoneTools = cornerstoneTools;
-// const segmentationModule = cornerstoneTools.getModule('segmentation');
 
 function createActorMapper(imageData) {
   const mapper = vtkVolumeMapper.newInstance();
@@ -249,74 +241,63 @@ function createStudyImageIds(baseUrl, studySearchOptions) {
   });
 }
 
-// const voi = {
-//   windowCenter: 35,
-//   windowWidth: 80,
-// };
+function createLabelMapImageData(backgroundImageData) {
+  const labelMapData = vtkImageData.newInstance(
+    backgroundImageData.get('spacing', 'origin', 'direction')
+  );
+  labelMapData.setDimensions(backgroundImageData.getDimensions());
+  labelMapData.computeTransforms();
 
-// function setupSyncedBrush(imageDataObject) {
-//   // Create buffer the size of the 3D volume
-//   const dimensions = imageDataObject.dimensions;
-//   const width = dimensions[0];
-//   const height = dimensions[1];
-//   const depth = dimensions[2];
-//   const numVolumePixels = width * height * depth;
+  const values = new Float32Array(backgroundImageData.getNumberOfPoints());
+  const dataArray = vtkDataArray.newInstance({
+    numberOfComponents: 1, // labelmap with single component
+    values,
+  });
+  labelMapData.getPointData().setScalars(dataArray);
 
-//   // If you want to load a segmentation labelmap, you would want to load
-//   // it into this array at this point.
-//   const threeDimensionalPixelData = new Float32Array(numVolumePixels);
+  return labelMapData;
+}
 
-//   const buffer = threeDimensionalPixelData.buffer;
-//   const imageIds = imageDataObject.imageIds;
-//   const numberOfFrames = imageIds.length;
+function createVolumeRenderingActor(imageData) {
+  const mapper = vtkVolumeMapper.newInstance();
+  mapper.setInputData(imageData);
 
-//   if (numberOfFrames !== depth) {
-//     throw new Error('Depth should match the number of imageIds');
-//   }
+  const actor = vtkVolume.newInstance();
+  actor.setMapper(mapper);
 
-//   // Use Float32Arrays in cornerstoneTools for interoperability.
-//   segmentationModule.configuration.arrayType = 1;
+  const rgbTransferFunction = actor.getProperty().getRGBTransferFunction(0);
+  const range = imageData
+    .getPointData()
+    .getScalars()
+    .getRange();
+  rgbTransferFunction.setMappingRange(range[0], range[1]);
 
-//   segmentationModule.setters.labelmap3DByFirstImageId(
-//     imageIds[0],
-//     buffer,
-//     0,
-//     [],
-//     numberOfFrames,
-//     undefined,
-//     0
-//   );
+  // create color and opacity transfer functions
+  const cfun = vtkColorTransferFunction.newInstance();
+  cfun.addRGBPoint(range[0], 0.4, 0.2, 0.0);
+  cfun.addRGBPoint(range[1], 1.0, 1.0, 1.0);
 
-//   // Create VTK Image Data with buffer as input
-//   const labelMap = vtkImageData.newInstance();
+  const ofun = vtkPiecewiseFunction.newInstance();
+  ofun.addPoint(0.0, 0.0);
+  ofun.addPoint(1000.0, 0.3);
+  ofun.addPoint(6000.0, 0.9);
 
-//   // right now only support 256 labels
-//   const dataArray = vtkDataArray.newInstance({
-//     numberOfComponents: 1, // labelmap with single component
-//     values: threeDimensionalPixelData,
-//   });
+  actor.getProperty().setRGBTransferFunction(0, cfun);
+  actor.getProperty().setScalarOpacity(0, ofun);
+  actor.getProperty().setScalarOpacityUnitDistance(0, 4.5);
+  actor.getProperty().setInterpolationTypeToLinear();
+  actor.getProperty().setUseGradientOpacity(0, true);
+  actor.getProperty().setGradientOpacityMinimumValue(0, 15);
+  actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0);
+  actor.getProperty().setGradientOpacityMaximumValue(0, 100);
+  actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0);
+  actor.getProperty().setAmbient(0.7);
+  actor.getProperty().setDiffuse(0.7);
+  actor.getProperty().setSpecular(0.3);
+  actor.getProperty().setSpecularPower(8.0);
 
-//   labelMap.getPointData().setScalars(dataArray);
-//   labelMap.setDimensions(...dimensions);
-//   labelMap.setSpacing(...imageDataObject.vtkImageData.getSpacing());
-//   labelMap.setOrigin(...imageDataObject.vtkImageData.getOrigin());
-//   labelMap.setDirection(...imageDataObject.vtkImageData.getDirection());
-
-//   return labelMap;
-// }
-
-// const ROOT_URL =
-//   window.location.hostname === 'localhost'
-//     ? window.location.host
-//     : window.location.hostname;
-
-// const imageIds2 = [
-//   `dicomweb://${ROOT_URL}/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032221.1.dcm`,
-//   `dicomweb://${ROOT_URL}/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032221.2.dcm`,
-//   `dicomweb://${ROOT_URL}/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032221.3.dcm`,
-//   `dicomweb://${ROOT_URL}/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032221.4.dcm`,
-//   `dicomweb://${ROOT_URL}/PTCTStudy/1.3.6.1.4.1.25403.52237031786.3872.20100510032221.5.dcm`,
-// ];
+  return actor;
+}
 
 class VTKCrosshairsExample extends Component {
   state = {
@@ -324,11 +305,11 @@ class VTKCrosshairsExample extends Component {
     displayCrosshairs: true,
     volumeRenderingVolumes: null,
     ctTransferFunctionPresetId: 'vtkMRMLVolumePropertyNode4',
-    petColorMapId: 'hsv',
-    cornerstoneViewportData: null,
     focusedWidgetId: null,
-    isSetup: false,
-    activeToolName: 'Brush',
+    paintFilterBackgroundImageData: null,
+    paintFilterLabelMapImageData: null,
+    threshold: 10,
+    activeCrosshairs: true,
   };
 
   async componentDidMount() {
@@ -351,10 +332,6 @@ class VTKCrosshairsExample extends Component {
       this.state.ctTransferFunctionPresetId
     );
 
-    // const promises = imageIds2.map(imageId => {
-    //   return cornerstone.loadAndCacheImage(imageId);
-    // });
-
     this.setState({
       volumeRenderingVolumes: [ctVolVR],
       percentComplete: 0,
@@ -368,119 +345,32 @@ class VTKCrosshairsExample extends Component {
         .getScalars()
         .getRange();
 
-      const mapper = vtkVolumeMapper.newInstance();
       const ctVol = vtkVolume.newInstance();
-      const rgbTransferFunction = ctVol.getProperty().getRGBTransferFunction(0);
+      const mapper = vtkVolumeMapper.newInstance();
 
-      mapper.setInputData(ctImageData);
-      mapper.setMaximumSamplesPerRay(2000);
-      rgbTransferFunction.setRange(range[0], range[1]);
       ctVol.setMapper(mapper);
+      mapper.setInputData(ctImageData);
+
+      const rgbTransferFunction = ctVol.getProperty().getRGBTransferFunction(0);
+      rgbTransferFunction.setMappingRange(500, 3000);
+      rgbTransferFunction.setRange(range[0], range[1]);
+
+      // mapper.setMaximumSamplesPerRay(2000);
+      const labelMapImageData = createLabelMapImageData(ctImageData);
+      const volumeRenderingActor = createVolumeRenderingActor(ctImageData);
 
       this.setState({
         volumes: [ctVol],
+        volumeRenderingVolumes: [volumeRenderingActor],
+        paintFilterBackgroundImageData: ctImageData,
+        paintFilterLabelMapImageData: labelMapImageData,
       });
     });
-
-    // Promise.all(promises).then(() => {
-    //   const displaySetInstanceUid = '12345';
-    //   const cornerstoneViewportData = {
-    //     stack: {
-    //       imageIds: imageIds2,
-    //       currentImageIdIndex: 0,
-    //     },
-    //     displaySetInstanceUid,
-    //   };
-
-    //   const imageDataObject = getImageData(imageIds2, displaySetInstanceUid);
-    //   const labelMapInputData = setupSyncedBrush(imageDataObject);
-    //   this.onMeasurementsChanged = event => {
-
-    //     if (event.type !== EVENTS.LABELMAP_MODIFIED) {
-    //       return;
-    //     }
-
-    //     labelMapInputData.modified();
-
-    //     this.rerenderAll();
-    //   };
-
-    //   loadImageData(imageDataObject);
-    //   Promise.all(imageDataObject.insertPixelDataPromises).then(() => {
-    //     const { actor } = createActorMapper(imageDataObject.vtkImageData);
-    //     const rgbTransferFunction = actor
-    //       .getProperty()
-    //       .getRGBTransferFunction(0);
-
-    //     const low = voi.windowCenter - voi.windowWidth / 2;
-    //     const high = voi.windowCenter + voi.windowWidth / 2;
-
-    //     rgbTransferFunction.setMappingRange(low, high);
-
-    //     this.setState({
-    //       vtkImageData: imageDataObject.vtkImageData,
-    //       volumes: [actor],
-    //       cornerstoneViewportData: cornerstoneViewportData,
-    //       labelMapInputData,
-    //       colorLUT: segmentationModule.getters.colorLUT(0),
-    //       globalOpacity: segmentationModule.configuration.fillAlpha,
-    //       outlineThickness: segmentationModule.configuration.outlineThickness,
-    //     });
-    //   });
-    // });
   }
-
-  // onPaintEnd = strokeBuffer => {
-  //   const element = this.cornerstoneElements[0];
-  //   const enabledElement = cornerstone.getEnabledElement(element);
-  //   const { getters, setters } = cornerstoneTools.getModule('segmentation');
-  //   const labelmap3D = getters.labelmap3D(element);
-  //   const stackState = cornerstoneTools.getToolState(element, 'stack');
-  //   const { rows, columns } = enabledElement.image;
-
-  //   if (!stackState || !labelmap3D) {
-  //     return;
-  //   }
-
-  //   const stackData = stackState.data[0];
-  //   const numberOfFrames = stackData.imageIds.length;
-  //   const segmentIndex = labelmap3D.activeSegmentIndex;
-
-  //   for (let i = 0; i < numberOfFrames; i++) {
-  //     let labelmap2D = labelmap3D.labelmaps2D[i];
-
-  //     if (labelmap2D && labelmap2D.segmentsOnLabelmap.includes(segmentIndex)) {
-  //       continue;
-  //     }
-
-  //     const frameLength = rows * columns;
-  //     const byteOffset = frameLength * i;
-  //     const strokeArray = new Uint8Array(strokeBuffer, byteOffset, frameLength);
-
-  //     const strokeOnFrame = strokeArray.some(element => element === 1);
-
-  //     if (!strokeOnFrame) {
-  //       continue;
-  //     }
-
-  //     if (labelmap2D) {
-  //       labelmap2D.segmentsOnLabelmap.push(segmentIndex);
-  //     } else {
-  //       labelmap2D = getters.labelmap2DByImageIdIndex(
-  //         labelmap3D,
-  //         i,
-  //         rows,
-  //         columns
-  //       );
-  //     }
-  //   }
-
-  //   cornerstone.updateImage(element);
-  // };
 
   saveApiReference = api => {
     this.apisVolum3D = [api];
-    this.apiBrush = [api]
+    this.apiBrush = [api];
   };
 
   handleChangeCTTransferFunction = event => {
@@ -501,16 +391,6 @@ class VTKCrosshairsExample extends Component {
   };
 
   rerenderAll = () => {
-    // Update all render windows, since the automatic re-render might not
-    // happen if the viewport is not currently using the painting widget
-    // Object.keys(this.apiBrush).forEach(viewportIndex => {
-    //   const renderWindow = this.apiBrush[
-    //     viewportIndex
-    //   ].genericRenderWindow.getRenderWindow();
-
-    //   renderWindow.render();
-    // });
-
     Object.keys(this.apisVolum3D).forEach(viewportIndex => {
       const renderWindow = this.apisVolum3D[
         viewportIndex
@@ -519,12 +399,6 @@ class VTKCrosshairsExample extends Component {
       renderWindow.render();
     });
   };
-
-  // saveCornerstoneElements = viewportIndex => {
-  //   return event => {
-  //     this.cornerstoneElements[viewportIndex] = event.detail.element;
-  //   };
-  // };
 
   storeApi = viewportIndex => {
     return api => {
@@ -588,7 +462,6 @@ class VTKCrosshairsExample extends Component {
     const shouldDisplayCrosshairs = !displayCrosshairs;
 
     apis.forEach(api => {
-      console.log(api);
       const { svgWidgetManager, svgWidgets } = api;
       svgWidgets.crosshairsWidget.setDisplay(shouldDisplayCrosshairs);
 
@@ -632,18 +505,62 @@ class VTKCrosshairsExample extends Component {
   }
 
   handleActiveTool = tool => {
-    this.setState({ activeToolName: tool })
+    switch (tool) {
+      case 'label':
+        this.setState({
+          focusedWidgetId: 'PaintWidget',
+          activeCrosshairs: false,
+        });
+        break;
+
+      case 'rotate':
+        this.setState({
+          focusedWidgetId: null,
+          activeCrosshairs: false,
+        });
+        break;
+
+      default:
+        this.setState({
+          focusedWidgetId: null,
+          activeCrosshairs: true,
+        });
+        break;
+    }
+  };
+
+  clearLabelMap = () => {
+    const labelMapImageData = this.state.paintFilterLabelMapImageData;
+    const numberOfPoints = labelMapImageData.getNumberOfPoints();
+    const values = new Float32Array(numberOfPoints);
+    const dataArray = vtkDataArray.newInstance({
+      numberOfComponents: 1, // labelmap with single component
+      values,
+    });
+
+    labelMapImageData.getPointData().setScalars(dataArray);
+    labelMapImageData.modified();
+
+    this.rerenderAll();
   };
 
   render() {
+    const loading = (
+      <div className="loading-box">
+        <div className="box-inside">
+          <img src="images/loading.gif" alt="" />
+          <h4>Loading...</h4>
+        </div>
+      </div>
+    );
+
     if (
       !this.state.volumes ||
       !this.state.volumes.length ||
       !this.state.volumeRenderingVolumes
     ) {
-      return <h4>Loading...</h4>;
+      return loading;
     }
-
 
     const ctTransferFunctionPresetOptions = presets.map(preset => {
       return (
@@ -659,8 +576,8 @@ class VTKCrosshairsExample extends Component {
 
     return (
       <div>
-        <div className="row">
-          <div className="col-xs-4">
+        <div className="sidebar">
+          <div className="set-slab">
             <label htmlFor="set-slab-thickness">SlabThickness: </label>
             <input
               id="set-slab-thickness"
@@ -670,6 +587,9 @@ class VTKCrosshairsExample extends Component {
               max="5000"
               onChange={this.handleSlabThicknessChange.bind(this)}
             />
+          </div>
+
+          <div className="toggle-crosshair">
             <p>Toggle crosshairs on/off.</p>
             <button onClick={this.toggleCrosshairs}>
               {this.state.displayCrosshairs
@@ -677,106 +597,132 @@ class VTKCrosshairsExample extends Component {
                 : 'Show Crosshairs'}
             </button>
           </div>
-        </div>
-        <div className="row">
-          <div className="col-xs-4">
+          <div>
+            <label htmlFor="select_CT_xfer_fn">
+              CT Transfer Function Preset (for Volume Rendering):{' '}
+            </label>
             <div>
-              <label htmlFor="select_CT_xfer_fn">
-                CT Transfer Function Preset (for Volume Rendering):{' '}
-              </label>
+              <select
+                id="select_CT_xfer_fn"
+                value={this.state.ctTransferFunctionPresetId}
+                onChange={this.handleChangeCTTransferFunction}
+              >
+                {ctTransferFunctionPresetOptions}
+              </select>
               <div>
-                <select
-                  id="select_CT_xfer_fn"
-                  value={this.state.ctTransferFunctionPresetId}
-                  onChange={this.handleChangeCTTransferFunction}
-                >
-                  {ctTransferFunctionPresetOptions}
-                </select>
-                <div>-- Volums render: <h5>{progressString}</h5></div>
+                -- Volums render: <h5>{progressString}</h5>
               </div>
             </div>
           </div>
-          <hr />
+          <div>
+            <button
+              type="button"
+              className="btn btn-warning"
+              style={{ marginRight: '6px' }}
+              onClick={() => this.handleActiveTool('crosshair')}
+            >
+              Crosshairs
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ marginRight: '6px' }}
+              onClick={() => this.handleActiveTool('rotate')}
+            >
+              Rotate
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              style={{ marginRight: '6px' }}
+              onClick={() => this.handleActiveTool('label')}
+            >
+              Label
+            </button>
+            <button
+              type="button"
+              className="btn btn-default"
+              style={{ marginRight: '6px' }}
+              onClick={() => this.clearLabelMap()}
+            >
+              Clear Label
+            </button>
+          </div>
         </div>
 
-        {/* <div className="row" style={{ marginBottom: '15px' }}>
-          <div className="col-xs-12">
-            <button type="button" className="btn btn-warning" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('Brush')}>Brush</button>
-            <button type="button" className="btn btn-primary" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('Length')}>Length</button>
-            <button type="button" className="btn btn-warning" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('Angle')}>Angle</button>
-            <button type="button" className="btn btn-success" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('Bidirectional')}>Bidirectional</button>
-            <button type="button" className="btn btn-danger" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('FreehandRoi')}>FreehandRoi</button>
-            <button type="button" className="btn btn-warning" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('Eraser')}>Eraser</button>
-            <button type="button" className="btn btn-info" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('CircleScissors')}>CircleScissors</button>
-            <button type="button" className="btn btn-danger" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('RectangleScissors')}>RectangleScissors</button>
-            <button type="button" className="btn btn-danger" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('FreehandScissors')}>Freehand Scissors</button>
-            <button type="button" className="btn btn-danger" style={{ marginRight: '6px' }} onClick={() => this.handleActiveTool('Magnify')}>Magnify</button>
-          </div>
-        </div> */}
-
-        <div className="row" style={{ marginBottom: '30px' }}>
-          {/* <div className="col-xs-4" style={{ height: '360px' }}>
-            <span className="label label-default">Test brush tool</span>
-            {this.state.cornerstoneViewportData && (
-              <CornerstoneViewport
-                activeTool={this.state.activeToolName}
-                availableTools={[
-                  { name: 'Brush' },
-                  { name: 'Length' },
-                  { name: 'Angle' },
-                  { name: 'Bidirectional' },
-                  { name: 'FreehandRoi' },
-                  { name: 'Eraser' },
-                  { name: 'CircleScissors' },
-                  { name: 'RectangleScissors' },
-                  { name: 'FreehandScissors' },
-                  { name: 'Magnify' },
-                  { name: 'Pan' },
-                  { name: 'Wwwc' },
-                  { name: 'PanMultiTouch' },
-                  { name: 'ZoomTouchPinch' },
-                  { name: 'StackScrollMultiTouch' },
-                  { name: 'StackScrollMouseWheel' }
-                ]}
-                viewportData={this.state.cornerstoneViewportData}
-                onMeasurementsChanged={this.onMeasurementsChanged}
-                onElementEnabled={this.saveCornerstoneElements(0)}
-              />
-            )}
-          </div> */}
-          {/* <div className="col-sm-4">{this.state.activeToolName}</div> */}
-        </div>
-
-        <div className="row">
-          <div className="col-sm-3">
-            <span className="label label-primary">Coronal</span>
+        <div className="mpr-content">
+          <div
+            className="col-xs-6 box-item-mpr"
+            style={{ width: '50%', height: '50%' }}
+          >
+            <span className="label box-name label-danger">Axial</span>
             <View2D
               volumes={this.state.volumes}
-              onCreated={this.storeApi(0)}
-              orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
-            />
-          </div>
-          <div className="col-sm-3">
-            <span className="label label-success">Sagittal</span>
-            <View2D
-              volumes={this.state.volumes}
-              onCreated={this.storeApi(1)}
-              orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
-            />
-          </div>
-          <div className="col-sm-3">
-            <span className="label label-danger">Axial</span>
-            <View2D
-              volumes={this.state.volumes}
-              onCreated={this.storeApi(2)}
+              onCreated={() => {}}
               orientation={{ sliceNormal: [0, 0, 1], viewUp: [0, -1, 0] }}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === 'PaintWidget'}
             />
           </div>
-          <div className="col-sm-3">
-            <span className="label label-warning">3D Volums</span>
+
+          <div
+            className="col-xs-6 box-item-mpr"
+            style={{ width: '50%', height: '50%' }}
+          >
+            <span className="label box-name label-success">Sagittal</span>
+            <View2D
+              volumes={this.state.volumes}
+              onCreated={() => {}}
+              orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === 'PaintWidget'}
+            />
+          </div>
+
+          <div
+            className="col-xs-6 box-item-mpr"
+            style={{ width: '50%', height: '50%', marginTop: '30px' }}
+          >
+            <span className="label box-name label-primary">Coronal</span>
+            <View2D
+              volumes={this.state.volumes}
+              onCreated={() => {}}
+              orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === 'PaintWidget'}
+            />
+          </div>
+
+          <div
+            className="col-xs-6 box-item-mpr"
+            style={{ width: '50%', height: '50%', marginTop: '30px' }}
+          >
+            <span className="label box-name label-warning">3D Volums</span>
             <View3D
               volumes={this.state.volumeRenderingVolumes}
               onCreated={this.saveApiReference}
+              paintFilterBackgroundImageData={
+                this.state.paintFilterBackgroundImageData
+              }
+              paintFilterLabelMapImageData={
+                this.state.paintFilterLabelMapImageData
+              }
+              painting={this.state.focusedWidgetId === 'PaintWidget'}
             />
           </div>
         </div>
