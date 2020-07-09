@@ -23,7 +23,7 @@ import './initCornerstone.js';
 
 window.cornerstoneWADOImageLoader = cornerstoneWADOImageLoader;
 
-const url = 'http://localhost:8080/dcm4chee-arc/aets/DCM4CHEE/rs';
+const url = process.env.DCM4CHEE_HOST + '/dcm4chee-arc/aets/DCM4CHEE/rs';
 const urlPageString = window.location.href;
 const formatUrl = new URL(urlPageString);
 const studyUid = formatUrl.searchParams.get('studyUid');
