@@ -511,6 +511,12 @@ class VTKCrosshairsExample extends Component {
         this.setState({
           focusedWidgetId: 'PaintWidget',
         });
+        apis.forEach(api => {
+          // disable crosshair widget
+          const { svgWidgetManager, svgWidgets } = api;
+          svgWidgets.crosshairsWidget.setDisplay(false);
+          svgWidgetManager.render();
+        });
         break;
 
       case 'rotate':
@@ -521,6 +527,10 @@ class VTKCrosshairsExample extends Component {
         apis.forEach(api => {
           const istyle = vtkInteractorStyleMPRRotate.newInstance();
           const renderWindow = api.genericRenderWindow.getRenderWindow();
+          const { svgWidgetManager, svgWidgets } = api;
+          // disable crosshair widget
+          svgWidgets.crosshairsWidget.setDisplay(false);
+          svgWidgetManager.render();
 
           api.setInteractorStyle({ istyle });
           renderWindow.render();
@@ -549,10 +559,10 @@ class VTKCrosshairsExample extends Component {
           });
 
           // set blend mode to MIP.
-          // const mapper = api.volumes[0].getMapper();
-          // if (mapper.setBlendModeToMaximumIntensity) {
-          //   mapper.setBlendModeToMaximumIntensity();
-          // }
+          const mapper = api.volumes[0].getMapper();
+          if (mapper.setBlendModeToMaximumIntensity) {
+            mapper.setBlendModeToMaximumIntensity();
+          }
 
           api.setSlabThickness(0.1);
 
