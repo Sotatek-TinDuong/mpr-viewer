@@ -35,6 +35,14 @@ const ENTRY_VTK_EXT = path.join(__dirname, './../src/index.js');
 const ENTRY_EXAMPLES = path.join(__dirname, './../examples/index.js');
 const SRC_PATH = path.join(__dirname, './../src');
 const OUT_PATH = path.join(__dirname, './../dist');
+const dotenv = require('dotenv');
+// call dotenv and it will return an Object with a parsed key
+const env = dotenv.config().parsed;
+// reduce it to a nice object, the same as before
+const envKeys = Object.keys(env).reduce((prev, next) => {
+  prev[`process.env.${next}`] = JSON.stringify(env[next]);
+  return prev;
+}, {});
 
 module.exports = {
   entry: {
@@ -96,6 +104,7 @@ module.exports = {
         ignore: ['index.html', '.DS_Store'],
       },
     ]),
+    new webpack.DefinePlugin(envKeys),
   ],
   // Fix for `cornerstone-wado-image-loader` fs dep
   node: { fs: 'empty' },
