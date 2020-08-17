@@ -567,10 +567,10 @@ class VTKCrosshairsExample extends Component {
           });
 
           // set blend mode to MIP.
-          // const mapper = api.volumes[0].getMapper();
-          // if (mapper.setBlendModeToMaximumIntensity) {
-          //   mapper.setBlendModeToMaximumIntensity();
-          // }
+          const mapper = api.volumes[0].getMapper();
+          if (mapper.setBlendModeToMaximumIntensity) {
+            mapper.setBlendModeToMaximumIntensity();
+          }
 
           // api.setSlabThickness(0.1);
 
