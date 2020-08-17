@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
-import '../public/css/style.css';
 import VTKBasicExample from './VTKBasicExample.js';
 import VTKFusionExample from './VTKFusionExample.js';
 import VTKMPRPaintingExample from './VTKMPRPaintingExample.js';
@@ -11,6 +10,7 @@ import VTKCrosshairsExample from './VTKCrosshairsExample.js';
 import VTKMPRRotateExample from './VTKMPRRotateExample.js';
 import VTKVolumeRenderingExample from './VTKVolumeRenderingExample.js';
 import DrawToolsExample from './drawTools.js';
+import '../src/sass/style.scss';
 
 function LinkOut({ href, text }) {
   return (

@@ -6,6 +6,8 @@ import vtkWidgetManager from 'vtk.js/Sources/Widgets/Core/WidgetManager';
 import vtkInteractorStyleMPRSlice from './vtkInteractorStyleMPRSlice';
 import vtkPaintFilter from 'vtk.js/Sources/Filters/General/PaintFilter';
 import vtkPaintWidget from 'vtk.js/Sources/Widgets/Widgets3D/PaintWidget';
+import vtkRectangleWidget from 'vtk.js/Sources/Widgets/Widgets3D/RectangleWidget';
+import vtkHttpDataSetReader from 'vtk.js/Sources/IO/Core/HttpDataSetReader';
 import vtkSVGWidgetManager from './vtkSVGWidgetManager';
 
 import ViewportOverlay from '../ViewportOverlay/ViewportOverlay.js';
@@ -88,6 +90,7 @@ export default class View2D extends Component {
     this.genericRenderWindow.setContainer(this.container.current);
 
     let widgets = [];
+    let widgets_rectangle = [];
     let filters = [];
     let actors = [];
     let volumes = [];
@@ -137,11 +140,11 @@ export default class View2D extends Component {
     this.widgetManager.disablePicking();
     this.widgetManager.setRenderer(this.paintRenderer);
     this.paintWidget = vtkPaintWidget.newInstance();
+    this.rectangleWidget = vtkRectangleWidget.newInstance(); //tuong duong
     this.paintWidget.setRadius(radius);
     this.paintFilter = vtkPaintFilter.newInstance();
     this.paintFilter.setLabel(label);
     this.paintFilter.setRadius(radius);
-
     // trigger pipeline update
     this.componentDidUpdate({});
 
@@ -163,8 +166,8 @@ export default class View2D extends Component {
     }
 
     filters = [this.paintFilter];
-    widgets = [this.paintWidget];
-
+    widgets = [this.rectangleWidget];
+    widgets_rectangle = {};
     // Set orientation based on props
     if (this.props.orientation) {
       const { orientation } = this.props;
@@ -175,7 +178,6 @@ export default class View2D extends Component {
     }
 
     const camera = this.renderer.getActiveCamera();
-
     camera.setParallelProjection(true);
     this.renderer.resetCamera();
 
@@ -233,6 +235,7 @@ export default class View2D extends Component {
         addSVGWidget: boundAddSVGWidget,
         container: this.container.current,
         widgets,
+        // widgets_rectangle,
         svgWidgets: this.svgWidgets,
         filters,
         actors,
@@ -321,7 +324,7 @@ export default class View2D extends Component {
 
     renderWindow.render();
   }
-
+  //crosshair
   setInteractorStyle({ istyle, callbacks = {}, configuration = {} }) {
     const { volumes } = this.props;
     const renderWindow = this.genericRenderWindow.getRenderWindow();
@@ -331,7 +334,6 @@ export default class View2D extends Component {
     while (this.interactorStyleSubs.length) {
       this.interactorStyleSubs.pop().unsubscribe();
     }
-
     let currentViewport;
     if (currentIStyle.getViewport && istyle.getViewport) {
       currentViewport = currentIStyle.getViewport();
@@ -341,7 +343,6 @@ export default class View2D extends Component {
     const interactor = renderWindow.getInteractor();
 
     interactor.setInteractorStyle(istyle);
-
     // TODO: Not sure why this is required the second time this function is called
     istyle.setInteractor(interactor);
 
@@ -552,6 +553,7 @@ export default class View2D extends Component {
     }
 
     if (prevProps.painting !== this.props.painting) {
+      //được gọi khi ấn nút label
       if (this.props.painting) {
         this.viewWidget = this.widgetManager.addWidget(
           this.paintWidget,

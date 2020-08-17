@@ -12,6 +12,7 @@ import getImageData from './lib/getImageData.js';
 import loadImageData from './lib/loadImageData.js';
 import invertVolume from './lib/invertVolume.js';
 import EVENTS from './events.js';
+import './css/style.css';
 
 export {
   View2D,
