@@ -310,6 +310,13 @@ class VTKCrosshairsExample extends Component {
     paintFilterBackgroundImageData: null,
     paintFilterLabelMapImageData: null,
     threshold: 10,
+    sengments: [
+      { name: 'segment 1', editing: false },
+      { name: 'segment 2', editing: false },
+      { name: 'segment 3', editing: false },
+      { name: 'segment 4', editing: false },
+      { name: 'segment 5', editing: false }
+    ]
   };
 
   async componentDidMount() {
@@ -404,41 +411,41 @@ class VTKCrosshairsExample extends Component {
     return api => {
       this.apis[viewportIndex] = api;
 
-      const apis = this.apis;
-      const renderWindow = api.genericRenderWindow.getRenderWindow();
+      // const apis = this.apis;
+      // const renderWindow = api.genericRenderWindow.getRenderWindow();
 
-      // Add svg widget
-      api.addSVGWidget(
-        vtkSVGCrosshairsWidget.newInstance(),
-        'crosshairsWidget'
-      );
+      // // Add svg widget
+      // api.addSVGWidget(
+      //   vtkSVGCrosshairsWidget.newInstance(),
+      //   'crosshairsWidget'
+      // );
 
-      const istyle = vtkInteractorStyleMPRCrosshairs.newInstance();
+      // const istyle = vtkInteractorStyleMPRCrosshairs.newInstance();
 
-      // add istyle
-      api.setInteractorStyle({
-        istyle,
-        configuration: { apis, apiIndex: viewportIndex },
-      });
+      // // add istyle
+      // api.setInteractorStyle({
+      //   istyle,
+      //   configuration: { apis, apiIndex: viewportIndex },
+      // });
 
-      // set blend mode to MIP.
-      const mapper = api.volumes[0].getMapper();
-      if (mapper.setBlendModeToMaximumIntensity) {
-        mapper.setBlendModeToMaximumIntensity();
-      }
+      // // set blend mode to MIP.
+      // const mapper = api.volumes[0].getMapper();
+      // if (mapper.setBlendModeToMaximumIntensity) {
+      //   mapper.setBlendModeToMaximumIntensity();
+      // }
 
-      api.setSlabThickness(0.1);
+      // api.setSlabThickness(0.1);
 
-      renderWindow.render();
+      // renderWindow.render();
 
-      // Its up to the layout manager of an app to know how many viewports are being created.
-      if (apis[0] && apis[1] && apis[2]) {
-        //const api = apis[0];
+      // // Its up to the layout manager of an app to know how many viewports are being created.
+      // if (apis[0] && apis[1] && apis[2]) {
+      //   //const api = apis[0];
 
-        const api = apis[0];
+      //   const api = apis[0];
 
-        api.svgWidgets.crosshairsWidget.resetCrosshairs(apis, 0);
-      }
+      //   api.svgWidgets.crosshairsWidget.resetCrosshairs(apis, 0);
+      // }
     };
   };
 
@@ -458,9 +465,7 @@ class VTKCrosshairsExample extends Component {
   toggleCrosshairs = () => {
     const { displayCrosshairs } = this.state;
     const apis = this.apis;
-
     const shouldDisplayCrosshairs = !displayCrosshairs;
-
     apis.forEach(api => {
       const { svgWidgetManager, svgWidgets } = api;
       svgWidgets.crosshairsWidget.setDisplay(shouldDisplayCrosshairs);
@@ -511,30 +516,30 @@ class VTKCrosshairsExample extends Component {
         this.setState({
           focusedWidgetId: 'PaintWidget',
         });
-        apis.forEach(api => {
-          // disable crosshair widget
-          const { svgWidgetManager, svgWidgets } = api;
-          svgWidgets.crosshairsWidget.setDisplay(false);
-          svgWidgetManager.render();
-        });
+        // apis.forEach(api => {
+        //   const { svgWidgetManager, svgWidgets } = api;
+        //   svgWidgets.crosshairsWidget.setDisplay(false);
+        //   svgWidgetManager.render();
+        // });
+        // this.setState({ displayCrosshairs: false });
         break;
 
       case 'rotate':
         this.setState({
           focusedWidgetId: null,
         });
-
-        apis.forEach(api => {
-          const istyle = vtkInteractorStyleMPRRotate.newInstance();
-          const renderWindow = api.genericRenderWindow.getRenderWindow();
-          const { svgWidgetManager, svgWidgets } = api;
-          // disable crosshair widget
-          svgWidgets.crosshairsWidget.setDisplay(false);
-          svgWidgetManager.render();
-
-          api.setInteractorStyle({ istyle });
-          renderWindow.render();
-        });
+        // apis.forEach(api => {
+        //   const istyle = vtkInteractorStyleMPRRotate.newInstance();
+        //   const renderWindow = api.genericRenderWindow.getRenderWindow();
+        //   api.setInteractorStyle({ istyle });
+        //   renderWindow.render();
+        // });
+        // apis.forEach(api => {
+        //   const { svgWidgetManager, svgWidgets } = api;
+        //   svgWidgets.crosshairsWidget.setDisplay(false);
+        //   svgWidgetManager.render();
+        // });
+        // this.setState({ displayCrosshairs: false });
         break;
 
       case 'crosshair':
@@ -542,20 +547,23 @@ class VTKCrosshairsExample extends Component {
           focusedWidgetId: null,
         });
 
+        const view = [2, 1, 0]
+
         apis.forEach((api, viewportIndex) => {
+          console.log('1', api);
           const renderWindow = api.genericRenderWindow.getRenderWindow();
           // Add svg widget
           api.addSVGWidget(
             vtkSVGCrosshairsWidget.newInstance(),
             'crosshairsWidget'
           );
-
+          console.log('2', api);
           const istyle = vtkInteractorStyleMPRCrosshairs.newInstance();
 
           // add istyle
           api.setInteractorStyle({
             istyle,
-            configuration: { apis, apiIndex: viewportIndex },
+            configuration: { apis, apiIndex: view[viewportIndex] },
           });
 
           // set blend mode to MIP.
@@ -564,7 +572,7 @@ class VTKCrosshairsExample extends Component {
             mapper.setBlendModeToMaximumIntensity();
           }
 
-          api.setSlabThickness(0.1);
+          // api.setSlabThickness(0.1);
 
           const { svgWidgetManager, svgWidgets } = api;
           svgWidgets.crosshairsWidget.setDisplay(true);
@@ -574,13 +582,13 @@ class VTKCrosshairsExample extends Component {
           renderWindow.render();
 
           // Its up to the layout manager of an app to know how many viewports are being created.
-          if (apis[0] && apis[1] && apis[2]) {
-            //const api = apis[0];
+          // if (apis[0] && apis[1] && apis[2]) {
+          //   //const api = apis[0];
 
-            const api = apis[0];
+          //   const api = apis[0];
 
-            api.svgWidgets.crosshairsWidget.resetCrosshairs(apis, 0);
-          }
+          //   api.svgWidgets.crosshairsWidget.resetCrosshairs(apis, 0);
+          // }
         });
 
         break;
@@ -601,7 +609,34 @@ class VTKCrosshairsExample extends Component {
 
     this.rerenderAll();
   };
+  // start func canh
+  handleClick = () => {
 
+    this.setState({ count: this.state.count + 2 })
+  }
+  addSegment = () => {
+    var index = this.state.sengments.length + 1;
+    var newName = 'segment ' + index;
+    this.state.sengments.push({ name: newName, editing: false });
+    this.setState({ sengments: this.state.sengments });
+  }
+  removeSegment = (idx) => {
+    this.state.sengments.splice(idx, 1);
+    this.setState({ sengments: this.state.sengments });
+  }
+  editSegmentName = (labelname, idx) => {
+    labelname.editing = true;
+    this.setState({ sengments: this.state.sengments });
+    setTimeout(() => {
+      $(input).focus()
+    }, 500);
+  }
+  handleBlur = (item, event) => {
+    item.editing = false;
+    item.name = event.target.value;
+    this.setState({ sengments: this.state.sengments });
+  }
+  //end func canh
   render() {
     const loading = (
       <div className="loading-box">
@@ -635,7 +670,232 @@ class VTKCrosshairsExample extends Component {
     return (
       <div>
         <div className="sidebar">
-          <div className="set-slab">
+          {/* start canh */}
+          <div className="panel3D">
+            <div className="mpr-label-lst">
+              <div className="mpr-label-lst__lbl arrow-anim">
+                <img src="../images/new-icon/lbl-list.png" /> <span>Label List</span>
+              </div>
+            </div>
+            <div className="mpr-label-lst__content collapse in">
+              <div className="mpr-label-lst__content--btns">
+                <button className="btn btn-light" onClick={() => { this.addSegment() }}>
+                  <img src="../images/new-icon/add-btn-3d.svg" /> Add
+              </button>
+                <button className="btn btn-light"><img src="../images/new-icon/minus-btn-3d.svg" /> Remove</button>
+                <button className="btn btn-light"><img src="../images/new-icon/save-btn-3d.svg" /> Save</button>
+              </div>
+              <div className="mpr-label-lst__content--btns">
+                <button type="button" className="btn-light" onClick={() => this.handleActiveTool('rotate')}>Rotate</button>
+                <button type="button" className="btn-light" onClick={() => this.handleActiveTool('label')}>Label</button>
+                <button type="button" className="btn-light" onClick={() => this.clearLabelMap()}>Clear Label</button>
+              </div>
+              <div className="able mpr-label-lst__content--tbl-wrapper scroll-bar-bbox">
+                <table className="table mpr-label-lst__content--tbl">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Name</th>
+                      <th>Color</th>
+                    </tr>
+                  </thead>
+                  <tbody className="table-body">
+                    {
+                      this.state.sengments.map((item, idx) => {
+                        return <tr key={idx}>
+                          <td><img src="../images/new-icon/eye-btn-active.png" className="img" /></td>
+                          <td onDoubleClick={() => { this.editSegmentName(item, idx) }}>
+                            <span className={item.editing ? 'hide' : 'show'}>{item.name}</span>
+                            <input className="input-label-name" class={item.editing ? 'show' : 'hide'} type="text" defaultValue={item.name}
+                              onBlur={() => { this.handleBlur(item, event) }} />
+                          </td>
+                          <td><span className="square green"></span> <img onClick={() => { this.removeSegment(idx) }} src="../images/worklist/delete.png" className="w8 un_ver" /></td>
+                        </tr>
+                      })
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="mpr-display">
+              <div className="mpr-2d-segment">
+                <div className="mpr-volumn-visual__ttl arrow-anim" data-toggle="collapse" data-target="#js-2dsegment-ctn">
+                  <img src="/images/new-icon/2d-segment.png" alt="" />
+                  <span>2D Segmentation</span>
+                </div>
+                <div className="collapse in" id="js-2dsegment-ctn">
+                  <div className="mpr-display__func mpr-2d">
+                    <button className="mpr-display__func--item" title="MPR scroll">
+                      <img src="/images/new-icon/plus-outside.png" />
+                    </button>
+                    <button className="mpr-display__func--item" title="Rotate">
+                      <img src="/images/new-icon/circle-minus.png" />
+                    </button>
+                    <button className="mpr-display__func--item" title="Zoom">
+                      <img src="/images/new-icon/brush.png" />
+                    </button>
+                    <button className="mpr-display__func--item" title="Pan">
+                      <img src="/images/new-icon/eraser.png" />
+                    </button>
+                    <button className="mpr-display__func--item" title="Reset image">
+                      <img src="/images/new-icon/paint.png" />
+                    </button>
+                    <button className="mpr-display__func--item" title="Windowing">
+                      <img src="/images/new-icon/recyclebin.png" />
+                    </button>
+                    <button className="mpr-display__func--item" title="Reset image">
+                      <img src="/images/new-icon/pen.png" />
+                    </button>
+                    <button className="mpr-display__func--item" title="Reset image">
+                      <img src="/images/new-icon/cube.png" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mpr-display">
+              <div className="mpr-2d-segment label-panel">
+                <div className="mpr-volumn-visual__ttl arrow-anim">
+                  <img src="../images/new-icon/annotation_list.svg" className="w16" />
+                  <span>Annotation List</span>
+                </div>
+                <div className="box-content">
+                  <div className="button-list">
+                    <button className="w-50">
+                      <img src="../images/new-icon/open-file-bbox.svg" /> Open
+                </button>
+                  </div>
+                  <div className="table-wrap-anno">
+                    <table className="label-list-table">
+                      <thead>
+                        <tr>
+                          <th></th>
+                          <th>Name</th>
+                          <th>Color</th>
+                          <th>Type</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mpr-display">
+              <div className="mpr-2d-segment label-panel">
+                <div className="mpr-volumn-visual__ttl arrow-anim">
+                  <img src="../images/new-icon/download.svg" className="w16" />
+                  <span>Download</span>
+                </div>
+                <div className="box-content collapse in">
+                  <div className="button-list no-border-bottom">
+                    <button className="w-50">
+                      <img src="../images/new-icon/save-btn-3d.svg" /> VOC
+                </button>
+                    <button className="w-50">
+                      <img src="../images/new-icon/save-btn-3d.svg" /> CROP
+                </button>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+
+
+
+          <div className="mpr-content">
+            <div
+              className="col-xs-6 box-item-mpr p0"
+              style={{ width: '50%', height: '50%' }}
+            >
+              <span className="label box-name label-danger">Axial</span>
+              <View2D
+                volumes={this.state.volumes}
+                // onCreated={this.storeApi(2)}
+                orientation={{ sliceNormal: [0, 0, 1], viewUp: [0, -1, 0] }}
+                paintFilterBackgroundImageData={
+                  this.state.paintFilterBackgroundImageData
+                }
+                paintFilterLabelMapImageData={
+                  this.state.paintFilterLabelMapImageData
+                }
+                painting={this.state.focusedWidgetId === 'PaintWidget'}
+              //painting={this.state.focusedWidgetId === 'PaintWidget'} =  true ?
+              />
+            </div>
+
+            <div
+              className="col-xs-6 box-item-mpr p0"
+              style={{ width: '50%', height: '50%' }}
+            >
+              <span className="label box-name label-success">Sagittal</span>
+              <View2D
+                volumes={this.state.volumes}
+                // onCreated={this.storeApi(1)}
+                orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
+                paintFilterBackgroundImageData={
+                  this.state.paintFilterBackgroundImageData
+                }
+                paintFilterLabelMapImageData={
+                  this.state.paintFilterLabelMapImageData
+                }
+                painting={this.state.focusedWidgetId === 'PaintWidget'}
+              />
+            </div>
+
+            <div
+              className="col-xs-6 box-item-mpr p0"
+              style={{ width: '50%', height: '50%', marginTop: '15px' }}
+            >
+              <span className="label box-name label-primary">Coronal</span>
+              <View2D
+                volumes={this.state.volumes}
+                // onCreated={this.storeApi(0)}
+                orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
+                paintFilterBackgroundImageData={
+                  this.state.paintFilterBackgroundImageData
+                }
+                paintFilterLabelMapImageData={
+                  this.state.paintFilterLabelMapImageData
+                }
+                painting={this.state.focusedWidgetId === 'PaintWidget'}
+              />
+            </div>
+
+            <div
+              className="col-xs-6 box-item-mpr p0"
+              style={{ width: '50%', height: '50%', marginTop: '15px' }}
+            >
+              <span className="label box-name label-warning">3D Volums</span>
+              <View3D
+                volumes={this.state.volumeRenderingVolumes}
+                onCreated={this.saveApiReference}
+                paintFilterBackgroundImageData={
+                  this.state.paintFilterBackgroundImageData
+                }
+                paintFilterLabelMapImageData={
+                  this.state.paintFilterLabelMapImageData
+                }
+                painting={this.state.focusedWidgetId === 'PaintWidget'}
+              />
+            </div>
+          </div>
+
+          {/* end canh */}
+          {/* <div className="set-slab">
             <label htmlFor="set-slab-thickness">SlabThickness: </label>
             <input
               id="set-slab-thickness"
@@ -645,17 +905,16 @@ class VTKCrosshairsExample extends Component {
               max="5000"
               onChange={this.handleSlabThicknessChange.bind(this)}
             />
-          </div>
-
-          <div className="toggle-crosshair">
+          </div> */}
+          {/* <div className="toggle-crosshair">
             <p>Toggle crosshairs on/off.</p>
             <button onClick={this.toggleCrosshairs}>
               {this.state.displayCrosshairs
                 ? 'Hide Crosshairs'
                 : 'Show Crosshairs'}
             </button>
-          </div>
-          <div>
+          </div> */}
+          {/* <div>
             <label htmlFor="select_CT_xfer_fn">
               CT Transfer Function Preset (for Volume Rendering):{' '}
             </label>
@@ -671,17 +930,17 @@ class VTKCrosshairsExample extends Component {
                 --- Volums render: <h5>{progressString}</h5>
               </div>
             </div>
-          </div>
+          </div> */}
           <div>
-            <button
+            {/* <button
               type="button"
               className="btn btn-warning"
               style={{ marginRight: '6px' }}
               onClick={() => this.handleActiveTool('crosshair')}
             >
               Crosshairs
-            </button>
-            <button
+            </button> */}
+            {/* <button
               type="button"
               className="btn btn-primary"
               style={{ marginRight: '6px' }}
@@ -704,86 +963,16 @@ class VTKCrosshairsExample extends Component {
               onClick={() => this.clearLabelMap()}
             >
               Clear Label
-            </button>
+            </button> */}
+
+
+
+
+
           </div>
         </div>
 
-        <div className="mpr-content">
-          <div
-            className="col-xs-6 box-item-mpr"
-            style={{ width: '50%', height: '50%' }}
-          >
-            <span className="label box-name label-danger">Axial</span>
-            <View2D
-              volumes={this.state.volumes}
-              onCreated={this.storeApi(2)}
-              orientation={{ sliceNormal: [0, 0, 1], viewUp: [0, -1, 0] }}
-              paintFilterBackgroundImageData={
-                this.state.paintFilterBackgroundImageData
-              }
-              paintFilterLabelMapImageData={
-                this.state.paintFilterLabelMapImageData
-              }
-              painting={this.state.focusedWidgetId === 'PaintWidget'}
-            />
-          </div>
 
-          <div
-            className="col-xs-6 box-item-mpr"
-            style={{ width: '50%', height: '50%' }}
-          >
-            <span className="label box-name label-success">Sagittal</span>
-            <View2D
-              volumes={this.state.volumes}
-              onCreated={this.storeApi(1)}
-              orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
-              paintFilterBackgroundImageData={
-                this.state.paintFilterBackgroundImageData
-              }
-              paintFilterLabelMapImageData={
-                this.state.paintFilterLabelMapImageData
-              }
-              painting={this.state.focusedWidgetId === 'PaintWidget'}
-            />
-          </div>
-
-          <div
-            className="col-xs-6 box-item-mpr"
-            style={{ width: '50%', height: '50%', marginTop: '30px' }}
-          >
-            <span className="label box-name label-primary">Coronal</span>
-            <View2D
-              volumes={this.state.volumes}
-              onCreated={this.storeApi(0)}
-              orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
-              paintFilterBackgroundImageData={
-                this.state.paintFilterBackgroundImageData
-              }
-              paintFilterLabelMapImageData={
-                this.state.paintFilterLabelMapImageData
-              }
-              painting={this.state.focusedWidgetId === 'PaintWidget'}
-            />
-          </div>
-
-          <div
-            className="col-xs-6 box-item-mpr"
-            style={{ width: '50%', height: '50%', marginTop: '30px' }}
-          >
-            <span className="label box-name label-warning">3D Volums</span>
-            <View3D
-              volumes={this.state.volumeRenderingVolumes}
-              onCreated={this.saveApiReference}
-              paintFilterBackgroundImageData={
-                this.state.paintFilterBackgroundImageData
-              }
-              paintFilterLabelMapImageData={
-                this.state.paintFilterLabelMapImageData
-              }
-              painting={this.state.focusedWidgetId === 'PaintWidget'}
-            />
-          </div>
-        </div>
       </div>
     );
   }

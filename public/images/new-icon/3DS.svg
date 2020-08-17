@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="22" viewBox="0 0 20 22">
+    <g fill="#C6C6C6" fill-rule="evenodd">
+        <g>
+            <rect width="20" height="1.5" y="10" rx=".75"/>
+            <rect width="20" height="1.5" y="10" rx=".75" transform="rotate(90 10 10.75)"/>
+            <path fill-rule="nonzero" d="M4 6.2L16 0v15.874L4 22z" opacity=".317"/>
+        </g>
+        <path fill-rule="nonzero" d="M2 3h16v16H2z" opacity=".317"/>
+    </g>
+</svg>

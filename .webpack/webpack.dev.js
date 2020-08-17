@@ -20,7 +20,8 @@
  *   ],
  * },
  */
-
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const path = require('path');
 const webpack = require('webpack');
 const autoprefixer = require('autoprefixer');
@@ -35,6 +36,7 @@ const ENTRY_VTK_EXT = path.join(__dirname, './../src/index.js');
 const ENTRY_EXAMPLES = path.join(__dirname, './../examples/index.js');
 const SRC_PATH = path.join(__dirname, './../src');
 const OUT_PATH = path.join(__dirname, './../dist');
+const scss = path.join(__dirname, './../src/sass/style.scss');
 const dotenv = require('dotenv');
 // call dotenv and it will return an Object with a parsed key
 const env = dotenv.config().parsed;
@@ -45,9 +47,13 @@ const envKeys = Object.keys(env).reduce((prev, next) => {
 }, {});
 
 module.exports = {
-  entry: {
-    examples: ENTRY_EXAMPLES,
+  optimization: {
+    minimizer: [new OptimizeCSSAssetsPlugin({})],
   },
+  entry: [
+    ENTRY_EXAMPLES,
+    scss
+  ],
   devtool: 'source-map',
   output: {
     path: OUT_PATH,
@@ -62,6 +68,14 @@ module.exports = {
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: ['babel-loader'],
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'sass-loader'
+        ]
       },
       {
         test: /\.css$/,
@@ -86,6 +100,9 @@ module.exports = {
     },
   },
   plugins: [
+    new MiniCssExtractPlugin({
+      style: '../public/css/style.min.css',
+    }),
     // Show build progress
     new webpack.ProgressPlugin(),
     // Clear dist between builds

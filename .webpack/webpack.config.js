@@ -9,6 +9,8 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const ENTRY_VTK_EXT = path.join(__dirname, './../src/index.js');
 const SRC_PATH = path.join(__dirname, './../src');
 const OUT_PATH = path.join(__dirname, './../dist');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 /**
  * `argv` are options from the CLI. They will override our config here if set.
@@ -20,8 +22,11 @@ module.exports = (env, argv) => {
   const outputFilename = isProdBuild ? '[name].umd.min.js' : '[name].umd.js';
 
   return {
+    optimization: {
+      minimizer: [new OptimizeCSSAssetsPlugin({})],
+    },
     entry: {
-      index: ENTRY_VTK_EXT,
+      index: ENTRY_VTK_EXT
     },
     devtool: 'source-map',
     output: {
@@ -34,14 +39,20 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
+          test: /\.css$/,
           test: /\.(js|jsx)$/,
           exclude: /node_modules/,
-          use: ['babel-loader'],
+          use: [
+            'babel-loader',
+            'style-loader',
+            'css-loader'
+          ]
         },
         {
           test: /\.css$/,
           exclude: /\.module\.css$/,
           use: [
+            MiniCssExtractPlugin.loader,
             'style-loader',
             'css-loader',
             {
@@ -83,6 +94,9 @@ module.exports = (env, argv) => {
       new webpack.ProgressPlugin(),
       // Clear dist between builds
       // new CleanWebpackPlugin(),
+      new MiniCssExtractPlugin({
+        filename: 'style.min.css'
+      })
     ],
   };
 };

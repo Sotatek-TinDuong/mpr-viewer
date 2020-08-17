@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 21.9 12" style="enable-background:new 0 0 21.9 12;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#00984A;}
+	.st1{fill:#00B44A;}
+	.st2{fill:#2ECC56;}
+	.st3{fill:#BEF4CA;}
+</style>
+<rect class="st0" width="3.9" height="12">
+<animate  accumulate="none" additive="replace" attributeName="opacity" begin="-0.6" calcMode="spline" dur="1s" fill="remove" keySplines="0.5 0 0.5 1;0.5 0 0.5 1" keyTimes="0;0.5;1" repeatCount="indefinite" restart="always" values="1;0.2;1">
+	</animate>
+</rect>
+<rect x="6" class="st1" width="3.9" height="12">
+<animate  accumulate="none" additive="replace" attributeName="opacity" begin="-0.4" calcMode="spline" dur="1s" fill="remove" keySplines="0.5 0 0.5 1;0.5 0 0.5 1" keyTimes="0;0.5;1" repeatCount="indefinite" restart="always" values="1;0.2;1">
+	</animate>
+</rect>
+<rect x="12" class="st2" width="3.9" height="12">
+<animate  accumulate="none" additive="replace" attributeName="opacity" begin="-0.2" calcMode="spline" dur="1s" fill="remove" keySplines="0.5 0 0.5 1;0.5 0 0.5 1" keyTimes="0;0.5;1" repeatCount="indefinite" restart="always" values="1;0.2;1">
+	</animate>
+</rect>
+<rect x="18" class="st3" width="3.9" height="12">
+<animate  accumulate="none" additive="replace" attributeName="opacity" begin="-1" calcMode="spline" dur="1s" fill="remove" keySplines="0.5 0 0.5 1;0.5 0 0.5 1" keyTimes="0;0.5;1" repeatCount="indefinite" restart="always" values="1;0.2;1">
+	</animate>
+</rect>
+</svg>
