@@ -410,42 +410,6 @@ class VTKCrosshairsExample extends Component {
   storeApi = viewportIndex => {
     return api => {
       this.apis[viewportIndex] = api;
-
-      // const apis = this.apis;
-      // const renderWindow = api.genericRenderWindow.getRenderWindow();
-
-      // // Add svg widget
-      // api.addSVGWidget(
-      //   vtkSVGCrosshairsWidget.newInstance(),
-      //   'crosshairsWidget'
-      // );
-
-      // const istyle = vtkInteractorStyleMPRCrosshairs.newInstance();
-
-      // // add istyle
-      // api.setInteractorStyle({
-      //   istyle,
-      //   configuration: { apis, apiIndex: viewportIndex },
-      // });
-
-      // // set blend mode to MIP.
-      // const mapper = api.volumes[0].getMapper();
-      // if (mapper.setBlendModeToMaximumIntensity) {
-      //   mapper.setBlendModeToMaximumIntensity();
-      // }
-
-      // api.setSlabThickness(0.1);
-
-      // renderWindow.render();
-
-      // // Its up to the layout manager of an app to know how many viewports are being created.
-      // if (apis[0] && apis[1] && apis[2]) {
-      //   //const api = apis[0];
-
-      //   const api = apis[0];
-
-      //   api.svgWidgets.crosshairsWidget.resetCrosshairs(apis, 0);
-      // }
     };
   };
 
@@ -516,30 +480,12 @@ class VTKCrosshairsExample extends Component {
         this.setState({
           focusedWidgetId: 'PaintWidget',
         });
-        // apis.forEach(api => {
-        //   const { svgWidgetManager, svgWidgets } = api;
-        //   svgWidgets.crosshairsWidget.setDisplay(false);
-        //   svgWidgetManager.render();
-        // });
-        // this.setState({ displayCrosshairs: false });
         break;
 
       case 'rotate':
         this.setState({
           focusedWidgetId: null,
         });
-        // apis.forEach(api => {
-        //   const istyle = vtkInteractorStyleMPRRotate.newInstance();
-        //   const renderWindow = api.genericRenderWindow.getRenderWindow();
-        //   api.setInteractorStyle({ istyle });
-        //   renderWindow.render();
-        // });
-        // apis.forEach(api => {
-        //   const { svgWidgetManager, svgWidgets } = api;
-        //   svgWidgets.crosshairsWidget.setDisplay(false);
-        //   svgWidgetManager.render();
-        // });
-        // this.setState({ displayCrosshairs: false });
         break;
 
       case 'crosshair':
@@ -747,7 +693,7 @@ class VTKCrosshairsExample extends Component {
                             </span>
                             <input
                               className="input-label-name"
-                              class={item.editing ? 'show' : 'hide'}
+                              className={item.editing ? 'show' : 'hide'}
                               type="text"
                               defaultValue={item.name}
                               onBlur={() => {
@@ -963,78 +909,6 @@ class VTKCrosshairsExample extends Component {
                 painting={this.state.focusedWidgetId === 'PaintWidget'}
               />
             </div>
-          </div>
-
-          {/* end canh */}
-          {/* <div className="set-slab">
-            <label htmlFor="set-slab-thickness">SlabThickness: </label>
-            <input
-              id="set-slab-thickness"
-              type="range"
-              name="points"
-              min="1"
-              max="5000"
-              onChange={this.handleSlabThicknessChange.bind(this)}
-            />
-          </div> */}
-          {/* <div className="toggle-crosshair">
-            <p>Toggle crosshairs on/off.</p>
-            <button onClick={this.toggleCrosshairs}>
-              {this.state.displayCrosshairs
-                ? 'Hide Crosshairs'
-                : 'Show Crosshairs'}
-            </button>
-          </div> */}
-          {/* <div>
-            <label htmlFor="select_CT_xfer_fn">
-              CT Transfer Function Preset (for Volume Rendering):{' '}
-            </label>
-            <div>
-              <select
-                id="select_CT_xfer_fn"
-                value={this.state.ctTransferFunctionPresetId}
-                onChange={this.handleChangeCTTransferFunction}
-              >
-                {ctTransferFunctionPresetOptions}
-              </select>
-              <div>
-                --- Volums render: <h5>{progressString}</h5>
-              </div>
-            </div>
-          </div> */}
-          <div>
-            {/* <button
-              type="button"
-              className="btn btn-warning"
-              style={{ marginRight: '6px' }}
-              onClick={() => this.handleActiveTool('crosshair')}
-            >
-              Crosshairs
-            </button> */}
-            {/* <button
-              type="button"
-              className="btn btn-primary"
-              style={{ marginRight: '6px' }}
-              onClick={() => this.handleActiveTool('rotate')}
-            >
-              Rotate
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              style={{ marginRight: '6px' }}
-              onClick={() => this.handleActiveTool('label')}
-            >
-              Label
-            </button>
-            <button
-              type="button"
-              className="btn btn-default"
-              style={{ marginRight: '6px' }}
-              onClick={() => this.clearLabelMap()}
-            >
-              Clear Label
-            </button> */}
           </div>
         </div>
       </div>
