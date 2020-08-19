@@ -1,192 +1,184 @@
 import React from 'react';
 import { Component } from 'react';
 
+import { getImageData, loadImageData } from '@vtk-viewport';
+import { api as dicomwebClientApi } from 'dicomweb-client';
+import CornerstoneViewport from 'react-cornerstone-viewport';
+import cornerstone from 'cornerstone-core';
+import cornerstoneTools from 'cornerstone-tools';
+import './initCornerstone.js';
+import vtkVolumeMapper from 'vtk.js/Sources/Rendering/Core/VolumeMapper';
+import vtkVolume from 'vtk.js/Sources/Rendering/Core/Volume';
+
+const url = process.env.DCM4CHEE_HOST + '/dcm4chee-arc/aets/DCM4CHEE/rs';
+const url_dicom = process.env.DCM4CHEE_HOST + '/dcm4chee-arc/aets/DCM4CHEE/wado?requestType=WADO';
+const urlPageString = window.location.href;
+const formatUrl = new URL(urlPageString);
+const studyUid = formatUrl.searchParams.get('studyUid');
+const serieUid = formatUrl.searchParams.get('serieUid');
+
+const studyInstanceUID = studyUid;
+const ctSeriesInstanceUID = serieUid;
+const searchInstanceOptions = {
+  studyInstanceUID,
+};
+
+window.cornerstoneTools = cornerstoneTools;
+
+const voi = {
+  windowCenter: 35,
+  windowWidth: 80,
+};
+
+function createActorMapper(imageData) {
+  const mapper = vtkVolumeMapper.newInstance();
+  mapper.setInputData(imageData);
+
+  const actor = vtkVolume.newInstance();
+  actor.setMapper(mapper);
+
+  return {
+    actor,
+    mapper,
+  };
+}
+
+function createStudyImageIds(baseUrl, studySearchOptions) {
+  const SOP_INSTANCE_UID = '00080018';
+  const SERIES_INSTANCE_UID = '0020000E';
+
+  const client = new dicomwebClientApi.DICOMwebClient({ url });
+
+  return new Promise((resolve, reject) => {
+    client.retrieveStudyMetadata(studySearchOptions).then(instances => {
+      const imageIds = instances.map(metaData => {
+        const imageId =
+          'wadouri:' +
+          baseUrl +
+          '&studyUID=' +
+          studyInstanceUID +
+          '&seriesUID=' +
+          metaData[SERIES_INSTANCE_UID].Value[0] +
+          '&objectUID=' +
+          metaData[SOP_INSTANCE_UID].Value[0] +
+          '&contentType=application/dicom';
+
+        cornerstoneWADOImageLoader.wadors.metaDataManager.add(
+          imageId,
+          metaData
+        );
+
+        return imageId;
+      });
+
+      resolve(imageIds);
+    }, reject);
+  });
+}
+
 class DrawToolsExample extends Component {
-  constructor(props) {
-    super(props);
+  state = {
+    volumes: null,
+    vtkImageData: null,
+    cornerstoneViewportData: null,
+    activeTool: 'FreehandScissors',
+  };
 
-    this.state = {
-      count: 0,
-      sengments: [
-        { name: 'segment 1', editing: false },
-        { name: 'segment 1', editing: false },
-        { name: 'segment 2', editing: false },
-        { name: 'segment 3', editing: false },
-        { name: 'segment 4', editing: false },
-        { name: 'segment 5', editing: false }
-      ]
-    }
-  }
-  componentDidMount() {
-    console.log("componentDidMount");
+  async componentDidMount() {
+    this.cornerstoneElements = {};
+
+    const imageIds = await createStudyImageIds(url_dicom, searchInstanceOptions);
+    const promises = imageIds.map(imageId => {
+      return cornerstone.loadAndCacheImage(imageId);
+    });
+
+    Promise.all(promises).then((data) => {
+      const displaySetInstanceUid = '';
+      const cornerstoneViewportData = {
+        stack: {
+          imageIds,
+          currentImageIdIndex: 0,
+        },
+        displaySetInstanceUid,
+      };
+
+      this.setState({
+        // vtkImageData: imageDataObject.vtkImageData,
+        // volumes: [actor],
+        cornerstoneViewportData
+      });
+
+      // const imageDataObject = getImageData(imageIds, displaySetInstanceUid)
+      // console.log("imageDataObject", imageDataObject);
+
+      // loadImageData(imageDataObject);
+      // Promise.all(imageDataObject.insertPixelDataPromises).then(() => {
+      //   const { actor } = createActorMapper(imageDataObject.vtkImageData);
+
+      //   const rgbTransferFunction = actor
+      //     .getProperty()
+      //     .getRGBTransferFunction(0);
+
+      //   const low = voi.windowCenter - voi.windowWidth / 2;
+      //   const high = voi.windowCenter + voi.windowWidth / 2;
+
+      //   rgbTransferFunction.setMappingRange(low, high);
+
+      //   this.setState({
+      //     vtkImageData: imageDataObject.vtkImageData,
+      //     volumes: [actor],
+      //     cornerstoneViewportData,
+      //   });
+      // });
+    });
   }
 
-  handleClick = () => {
+  saveCornerstoneElements = viewportIndex => {
+    return event => {
+      this.cornerstoneElements[viewportIndex] = event.detail.element;
+    };
+  };
 
-    this.setState({ count: this.state.count + 2 })
-  }
-  addSegment = () => {
-    var index = this.state.sengments.length + 1;
-    this.state.sengments.push(index);
-    this.setState({ sengments: this.state.sengments });
-  }
-  removeSegment = (idx) => {
-    this.state.sengments.splice(idx, 1);
-    this.setState({ sengments: this.state.sengments });
-  }
-  editSegmentName = (labelname, idx) => {
-    labelname.editing = true;
-    this.setState({ sengments: this.state.sengments });
-    setTimeout(() => {
-      $(input).focus()
-    }, 500);
-  }
-  handleBlur = (item, event) => {
-    item.editing = false;
-    item.name = event.target.value;
-    this.setState({ sengments: this.state.sengments });
-  }
+  handleActiveTool = toolName => {
+    this.setState({
+      activeTool: toolName,
+    });
+  };
 
   render() {
+    const styleButton = {
+      marginRight: "5px"
+    }
     return (
-      <div className="panel3D">
-        <div className="mpr-label-lst">
-          <div className="mpr-label-lst__lbl arrow-anim">
-            <img src="../images/new-icon/lbl-list.png" /> <span>Label List</span>
-          </div>
+      <div className="col-xs-12 col-sm-6">
+        <div className="toolbar" style={{ "marginBottom": "20px" }}>
+          <button style={styleButton} type="button" className="btn btn-primary" onClick={() => this.handleActiveTool('Brush')}>Brush</button>
+          <button style={styleButton} type="button" className="btn btn-warning" onClick={() => this.handleActiveTool('RectangleScissors')}>RectangleScissors</button>
+          <button style={styleButton} type="button" className="btn btn-success" onClick={() => this.handleActiveTool('CircleScissors')}>CircleScissors</button>
+          <button style={styleButton} type="button" className="btn btn-danger" onClick={() => this.handleActiveTool('FreehandScissors')}>FreehandScissors</button>
+          <button style={styleButton} type="button" className="btn btn-warning" onClick={() => this.handleActiveTool('RectangleScissors')}>RectangleScissors</button>
+          <button style={styleButton} type="button" className="btn btn-info" onClick={() => this.handleActiveTool('Wwwc')}>Wwwc</button>
+          <button style={styleButton} type="button" className="btn btn-warning" onClick={() => this.handleActiveTool('Zoom')}>Zoom</button>
         </div>
-        <div className="mpr-label-lst__content collapse in">
-          <div className="mpr-label-lst__content--btns">
-            <button className="btn btn-light" onClick={() => { this.addSegment() }}>
-              <img src="../images/new-icon/add-btn-3d.svg" /> Add
-              </button>
-            <button className="btn btn-light"><img src="../images/new-icon/minus-btn-3d.svg" /> Remove</button>
-            <button className="btn btn-light"><img src="../images/new-icon/save-btn-3d.svg" /> Save</button>
-          </div>
-          <div className="able mpr-label-lst__content--tbl-wrapper scroll-bar-bbox">
-            <table className="table mpr-label-lst__content--tbl">
-              <thead>
-                <tr>
-                  <th></th>
-                  <th>Name</th>
-                  <th>Color</th>
-                </tr>
-              </thead>
-              <tbody>
-                {
-                  this.state.sengments.map((item, idx) => {
-                    return <tr key={idx}>
-                      <td><img src="../images/new-icon/eye-btn-active.png" className="img" /></td>
-                      <td onDoubleClick={() => { this.editSegmentName(item, idx) }}>
-                        <span className={item.editing ? 'hide' : 'show'}>{item.name}</span>
-                        <input className="input-label-name" class={item.editing ? 'show' : 'hide'} type="text" defaultValue={item.name}
-                          onBlur={() => { this.handleBlur(item, event) }} />
-                      </td>
-                      <td><span className="square green"></span> <img onClick={() => { this.removeSegment(idx) }} src="../images/worklist/delete.png" className="w8 un_ver" /></td>
-                    </tr>
-                  })
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className="mpr-display">
-          <div className="mpr-2d-segment">
-            <div className="mpr-volumn-visual__ttl arrow-anim" data-toggle="collapse" data-target="#js-2dsegment-ctn">
-              <img src="/images/new-icon/2d-segment.png" alt="" />
-              <span>2D Segmentation</span>
-            </div>
-            <div className="collapse in" id="js-2dsegment-ctn">
-              <div className="mpr-display__func mpr-2d">
-                <button className="mpr-display__func--item" title="MPR scroll">
-                  <img src="/images/new-icon/plus-outside.png" />
-                </button>
-                <button className="mpr-display__func--item" title="Rotate">
-                  <img src="/images/new-icon/circle-minus.png" />
-                </button>
-                <button className="mpr-display__func--item" title="Zoom">
-                  <img src="/images/new-icon/brush.png" />
-                </button>
-                <button className="mpr-display__func--item" title="Pan">
-                  <img src="/images/new-icon/eraser.png" />
-                </button>
-                <button className="mpr-display__func--item" title="Reset image">
-                  <img src="/images/new-icon/paint.png" />
-                </button>
-                <button className="mpr-display__func--item" title="Windowing">
-                  <img src="/images/new-icon/recyclebin.png" />
-                </button>
-                <button className="mpr-display__func--item" title="Reset image">
-                  <img src="/images/new-icon/pen.png" />
-                </button>
-                <button className="mpr-display__func--item" title="Reset image">
-                  <img src="/images/new-icon/cube.png" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="mpr-display">
-          <div className="mpr-2d-segment label-panel">
-            <div className="mpr-volumn-visual__ttl arrow-anim">
-              <img src="../images/new-icon/annotation_list.svg" className="w16" />
-              <span>Annotation List</span>
-            </div>
-            <div className="box-content">
-              <div className="button-list">
-                <button className="w-50">
-                  <img src="../images/new-icon/open-file-bbox.svg" /> Open
-                </button>
-              </div>
-              <div className="table-wrap-anno">
-                <table className="label-list-table">
-                  <thead>
-                    <tr>
-                      <th></th>
-                      <th>Name</th>
-                      <th>Color</th>
-                      <th>Type</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                      <td></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="mpr-display">
-          <div className="mpr-2d-segment label-panel">
-            <div className="mpr-volumn-visual__ttl arrow-anim">
-              <img src="../images/new-icon/download.svg" className="w16" />
-              <span>Download</span>
-            </div>
-            <div className="box-content collapse in">
-              <div className="button-list no-border-bottom">
-                <button className="w-50">
-                  <img src="../images/new-icon/save-btn-3d.svg" /> VOC
-                </button>
-                <button className="w-50">
-                  <img src="../images/new-icon/save-btn-3d.svg" /> CROP
-                </button>
-              </div>
-            </div>
-          </div>
+        <div style={{ height: '512px' }}>
+          {this.state.cornerstoneViewportData && (
+            <CornerstoneViewport
+              activeTool={this.state.activeTool}
+              availableTools={[
+                { name: 'RectangleScissors', mouseButtonMasks: [1] },
+                { name: 'StackScrollMouseWheel', mouseButtonMasks: [1] },
+                { name: 'StackScrollMultiTouch', mouseButtonMasks: [1] },
+                { name: 'Brush', mouseButtonMasks: [1] },
+                { name: 'CircleScissors', mouseButtonMasks: [1] },
+                { name: 'FreehandScissors', mouseButtonMasks: [1] },
+                { name: 'RectangleScissors', mouseButtonMasks: [1] },
+                { name: 'Wwwc', mouseButtonMasks: [1] },
+                { name: 'Zoom', mouseButtonMasks: [1] },
+              ]}
+              viewportData={this.state.cornerstoneViewportData}
+              onElementEnabled={this.saveCornerstoneElements(0)}
+            />
+          )}
         </div>
       </div>
     );
