@@ -660,6 +660,10 @@ class VTKCrosshairsExample extends Component {
       marginRight: '5px',
     };
 
+    const style = typeDicom
+      ? { width: '100%', height: '100%' }
+      : { width: '50%', height: '50%' };
+
     const loading = (
       <div className="loading-box">
         <div className="box-inside">
@@ -912,10 +916,7 @@ class VTKCrosshairsExample extends Component {
           </div>
 
           <div className="mpr-content">
-            <div
-              className="col-xs-6 box-item-mpr p0"
-              style={{ width: '50%', height: '50%' }}
-            >
+            <div className="col-xs-6 box-item-mpr p0" style={style}>
               <span className="label box-name label-danger">Axial</span>
               {typeDicom != 'xray' && (
                 <View2D
