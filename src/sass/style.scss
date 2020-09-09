@@ -212,17 +212,21 @@ table tr {
   margin-right: 10px;
 }
 .mpr-display__func.mpr-2d {
-  grid-template-columns: repeat(8, calc(100% / 8));
+  grid-template-columns: repeat(9, calc(100% / 9));
   margin-bottom: 20px;
 }
 .mpr-display__func.mpr-2d button {
   display: flex;
   justify-content: center;
+  align-items: center;
   border: 1px solid #6d6d6d;
   padding: 5px;
 }
 .mpr-display__func.mpr-2d button img {
   width: 30px;
+}
+#js-2dsegment-ctn {
+  height: 48px;
 }
 .lightSetting {
   width: 280px;
@@ -385,4 +389,13 @@ input[type='text'] {
 .scroll-bar-bbox {
   height: 200px;
   overflow-y: auto;
+}
+
+.crossmode {
+  width: 0;
+  overflow: hidden;
+}
+
+.segmode {
+  width: auto;
 }
