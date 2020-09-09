@@ -9,7 +9,20 @@ cornerstoneTools.external.cornerstone = cornerstone;
 cornerstoneTools.external.Hammer = Hammer;
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
 
-cornerstoneTools.init();
+cornerstoneTools.init([
+  {
+    moduleName: 'globalConfiguration',
+    configuration: {
+      showSVGCursors: true,
+    },
+  },
+  {
+    moduleName: 'segmentation',
+    configuration: {
+      outlineWidth: 2,
+    },
+  },
+]);
 
 // Set the tool font and font size
 // context.font = "[style] [variant] [weight] [size]/[line height] [font family]";
