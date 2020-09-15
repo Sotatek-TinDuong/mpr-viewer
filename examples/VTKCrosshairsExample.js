@@ -28,7 +28,6 @@ import './initCornerstone.js';
 const { getters, setters, configuration, state } = cornerstoneTools.getModule(
   'segmentation'
 );
-
 window.cornerstoneTools = cornerstoneTools;
 window.cornerstoneWADOImageLoader = cornerstoneWADOImageLoader;
 
@@ -377,7 +376,6 @@ class VTKCrosshairsExample extends Component {
         ctImageData,
         this.state.ctTransferFunctionPresetId
       );
-
       this.setState({
         volumeRenderingVolumes: [ctVolVR],
         percentComplete: 0,
@@ -402,7 +400,6 @@ class VTKCrosshairsExample extends Component {
           .getRGBTransferFunction(0);
         rgbTransferFunction.setMappingRange(500, 3000);
         rgbTransferFunction.setRange(range[0], range[1]);
-
         mapper.setMaximumSamplesPerRay(2000);
         const labelMapImageData = createLabelMapImageData(ctImageData);
         const volumeRenderingActor = createVolumeRenderingActor(ctImageData);
@@ -813,7 +810,12 @@ class VTKCrosshairsExample extends Component {
                 </div>
                 <div className="box-content">
                   <div className="button-list">
-                    <button className="w-50">
+                    <button
+                      className="w-50"
+                      onClick={() => {
+                        this.setState({ typeDicom: 'xray' });
+                      }}
+                    >
                       <img src="../images/new-icon/open-file-bbox.svg" /> Open
                     </button>
                     <button
