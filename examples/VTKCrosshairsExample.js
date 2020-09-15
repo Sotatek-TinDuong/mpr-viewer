@@ -1,5 +1,6 @@
 import React from 'react';
 import { Component } from 'react';
+import $ from 'jquery';
 
 import {
   View2D,
@@ -313,27 +314,31 @@ function createVolumeRenderingActor(imageData) {
 }
 
 class VTKCrosshairsExample extends Component {
-  state = {
-    volumes: [],
-    displayCrosshairs: true,
-    volumeRenderingVolumes: null,
-    ctTransferFunctionPresetId: 'vtkMRMLVolumePropertyNode4',
-    focusedWidgetId: 'PaintWidget',
-    paintFilterBackgroundImageData: null,
-    paintFilterLabelMapImageData: null,
-    threshold: 10,
-    sengments: [
-      { name: 'segment 1', editing: false },
-      { name: 'segment 2', editing: false },
-      { name: 'segment 3', editing: false },
-      { name: 'segment 4', editing: false },
-      { name: 'segment 5', editing: false },
-    ],
-    cornerstoneViewportData: null,
-    activeTool: 'FreehandScissors',
-    typeDicom: typeDicom,
-    pxData: [],
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      volumes: [],
+      displayCrosshairs: true,
+      volumeRenderingVolumes: null,
+      ctTransferFunctionPresetId: 'vtkMRMLVolumePropertyNode4',
+      focusedWidgetId: 'PaintWidget',
+      paintFilterBackgroundImageData: null,
+      paintFilterLabelMapImageData: null,
+      threshold: 10,
+      sengments: [
+        { name: 'segment 1', editing: false },
+        { name: 'segment 2', editing: false },
+        { name: 'segment 3', editing: false },
+        { name: 'segment 4', editing: false },
+        { name: 'segment 5', editing: false },
+      ],
+      cornerstoneViewportData: null,
+      activeTool: 'FreehandScissors',
+      typeDicom: typeDicom,
+      pxData: [],
+    };
+    this.link = React.createRef();
+  }
 
   async componentDidMount() {
     this.apis = [];
@@ -611,6 +616,40 @@ class VTKCrosshairsExample extends Component {
     };
 
     console.log('params', obj);
+
+    const arr = new Uint8Array(obj.get3d.buffer).toString();
+    const buffer = new Uint8Array(arr.split(',')).buffer;
+
+    // console.log(arr);
+    // console.log(buffer);
+
+    var newFile = new File([arr], 'buffer.txt', { type: 'text/plain' });
+
+    // const blob = new Blob([arr], {
+    //   type: 'text/plain',
+    // });
+
+    // const objectURL = URL.createObjectURL(blob);
+    // node.href = objectURL;
+    // node.href = URL.createObjectURL(blob);
+    // node.download = 'buffer.txt';
+    // node.click();
+    this.download('buffer.txt', arr);
+  };
+
+  download = (filename, text) => {
+    const node = this.link;
+    var element = document.createElement('a');
+    element.setAttribute(
+      'href',
+      'data:text/plain;charset=utf-8,' + encodeURIComponent(text)
+    );
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    $('#link').append(element);
+
+    element.click();
   };
 
   setSegmentation = () => {
@@ -618,6 +657,19 @@ class VTKCrosshairsExample extends Component {
     setters.undo(element, 0);
     setters.labelmap3DForElement(element, this.state.pxData, 0);
     console.log('set');
+  };
+
+  onChange = event => {
+    const element = this.cornerstoneElements[0];
+    const file = event.target.files[0];
+    var reader = new FileReader();
+    reader.onload = function() {
+      var text = reader.result;
+      const buffer = new Uint8Array(text.split(',')).buffer;
+      setters.labelmap3DForElement(element, buffer, 0);
+      cornerstone.updateImage(element);
+    };
+    reader.readAsText(file);
   };
 
   render() {
@@ -834,8 +886,12 @@ class VTKCrosshairsExample extends Component {
                     >
                       SET
                     </button>
+                    <div id="link" ref={this.link}>
+                      Click to me
+                    </div>
                   </div>
                   <div className="table-wrap-anno">
+                    <input type="file" onChange={this.onChange} />
                     <table className="label-list-table">
                       <thead>
                         <tr>
