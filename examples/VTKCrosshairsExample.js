@@ -1,6 +1,6 @@
 import React from 'react';
 import { Component } from 'react';
-import axios from 'axios';
+
 import {
   View2D,
   View3D,
@@ -25,6 +25,9 @@ import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 import './initCornerstone.js';
 
+const { getters, setters, configuration, state } = cornerstoneTools.getModule(
+  'segmentation'
+);
 window.cornerstoneTools = cornerstoneTools;
 window.cornerstoneWADOImageLoader = cornerstoneWADOImageLoader;
 
@@ -329,6 +332,7 @@ class VTKCrosshairsExample extends Component {
     cornerstoneViewportData: null,
     activeTool: 'FreehandScissors',
     typeDicom: typeDicom,
+    pxData: [],
   };
 
   async componentDidMount() {
@@ -372,7 +376,6 @@ class VTKCrosshairsExample extends Component {
         ctImageData,
         this.state.ctTransferFunctionPresetId
       );
-
       this.setState({
         volumeRenderingVolumes: [ctVolVR],
         percentComplete: 0,
@@ -397,7 +400,6 @@ class VTKCrosshairsExample extends Component {
           .getRGBTransferFunction(0);
         rgbTransferFunction.setMappingRange(500, 3000);
         rgbTransferFunction.setRange(range[0], range[1]);
-
         mapper.setMaximumSamplesPerRay(2000);
         const labelMapImageData = createLabelMapImageData(ctImageData);
         const volumeRenderingActor = createVolumeRenderingActor(ctImageData);
@@ -592,6 +594,32 @@ class VTKCrosshairsExample extends Component {
     this.setState({ sengments: this.state.sengments });
   };
   //end func canh
+
+  getSegmentation = () => {
+    const element = this.cornerstoneElements[0];
+
+    const get2d = getters.labelmap2D(element);
+    const get3d = getters.labelmap3D(element);
+    const get3ds = getters.labelmaps3D(element);
+
+    const obj = {
+      getters: getters,
+      setters: setters,
+      get2d: get2d,
+      get3d: get3d,
+      get3ds: get3ds,
+    };
+
+    console.log('params', obj);
+  };
+
+  setSegmentation = () => {
+    const element = this.cornerstoneElements[0];
+    setters.undo(element, 0);
+    setters.labelmap3DForElement(element, this.state.pxData, 0);
+    console.log('set');
+  };
+
   render() {
     const { typeDicom } = this.state;
     const className =
@@ -789,6 +817,22 @@ class VTKCrosshairsExample extends Component {
                       }}
                     >
                       <img src="../images/new-icon/open-file-bbox.svg" /> Open
+                    </button>
+                    <button
+                      className="w-20"
+                      onClick={() => {
+                        this.getSegmentation();
+                      }}
+                    >
+                      GET
+                    </button>
+                    <button
+                      className="w-20"
+                      onClick={() => {
+                        this.setSegmentation();
+                      }}
+                    >
+                      SET
                     </button>
                   </div>
                   <div className="table-wrap-anno">
