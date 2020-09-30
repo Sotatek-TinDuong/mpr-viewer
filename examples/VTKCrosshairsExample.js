@@ -9,7 +9,6 @@ import {
   loadImageData,
   vtkInteractorStyleMPRCrosshairs,
   vtkSVGCrosshairsWidget,
-  vtkInteractorStyleMPRRotate,
 } from '@vtk-viewport';
 import { api as dicomwebClientApi } from 'dicomweb-client';
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
@@ -336,6 +335,8 @@ class VTKCrosshairsExample extends Component {
       activeTool: 'FreehandScissors',
       typeDicom: typeDicom,
       pxData: [],
+      // label panel state
+      labelListCreate: [],
     };
     this.link = React.createRef();
   }
@@ -672,230 +673,184 @@ class VTKCrosshairsExample extends Component {
     reader.readAsText(file);
   };
 
+  // label map function
+  createLabel = () => {
+    const { labelListCreate } = this.state;
+    let params = {
+      no: labelListCreate.length,
+      name: `Segmentation ${labelListCreate.length}`,
+      color: '#ff0000',
+      type: 'nifti',
+    };
+    this.setState({ labelListCreate: params });
+  };
+
   render() {
     const { typeDicom } = this.state;
     const className =
       typeDicom && typeDicom === 'xray' ? 'segmode' : 'crossmode';
 
-    const style = typeDicom
-      ? { width: '100%', height: '100%' }
-      : { width: '50%', height: '50%' };
-
     const loading = (
       <div className="loading-box">
         <div className="box-inside">
-          <img src="images/loading.gif" alt="" />
+          <img alt="" src="images/loading.gif" />
           <h4>Loading...</h4>
         </div>
       </div>
     );
 
-    if (
-      typeDicom != 'xray' &&
-      (!this.state.volumes ||
-        !this.state.volumes.length ||
-        !this.state.volumeRenderingVolumes)
-    ) {
-      return loading;
-    }
-
     return (
       <div>
-        <div className="sidebar">
-          {/* start canh */}
-          <div className="panel3D">
-            <div className="mpr-label-lst">
-              <div className="mpr-label-lst__lbl arrow-anim">
-                <img src="../images/new-icon/lbl-list.png" />{' '}
-                <span>Label List</span>
+        <div className="left-panel-tool">
+          <div className="bar-menu f-left">
+            <div className="label-title title">Project</div>
+            <a
+              href="http://www.deepphi.ai"
+              className="link-item"
+              title="DEEP:PHI"
+            >
+              <img src="../images/new-icon/deep_phi.svg" alt="deep_phi" />
+            </a>
+            <a
+              href="http://www.deepstoreai.ai"
+              className="link-item"
+              title="DEEP:STORE"
+            >
+              <img src="../images/new-icon/dee-_store.svg" alt="deep_store" />
+            </a>
+          </div>
+
+          <div className="label-panel f-left">
+            <div id="labelListContent">
+              <div className="label-title title">Label</div>
+              <div className="box-title">
+                <img src="../images/new-icon/lbl-list.png" alt="Label list" />
+                <span>Label list</span>
+                <span>(1)</span>
               </div>
-            </div>
-            <div className="mpr-label-lst__content collapse in">
-              <div className="mpr-label-lst__content--btns">
-                <button
-                  className="btn btn-light"
-                  onClick={() => {
-                    this.addSegment();
-                  }}
-                >
-                  <img src="../images/new-icon/add-btn-3d.svg" /> Add
-                </button>
-                <button className="btn btn-light">
-                  <img src="../images/new-icon/minus-btn-3d.svg" /> Remove
-                </button>
-                <button className="btn btn-light">
-                  <img src="../images/new-icon/save-btn-3d.svg" /> Save
-                </button>
+
+              <div className="box-content">
+                <div className="label-list-head">
+                  <button
+                    className="create-label"
+                    onClick={() => this.createLabel()}
+                  >
+                    <span>
+                      <img src="../images/new-icon/add-btn-3d.svg" alt="" />
+                    </span>
+                    <span>Add</span>
+                  </button>
+                </div>
               </div>
-              <div className="able mpr-label-lst__content--tbl-wrapper scroll-bar-bbox">
-                <table className="table mpr-label-lst__content--tbl">
+
+              <div className="table-wrap">
+                <table className="label-list-table">
                   <thead>
                     <tr>
-                      <th></th>
+                      <th>No</th>
                       <th>Name</th>
                       <th>Color</th>
+                      <th>Type</th>
+                      <th></th>
                     </tr>
                   </thead>
-                  <tbody className="table-body">
-                    {this.state.sengments.map((item, idx) => {
-                      return (
-                        <tr key={idx}>
-                          <td>
-                            <img
-                              src="../images/new-icon/eye-btn-active.png"
-                              className="img"
-                            />
-                          </td>
-                          <td
-                            onDoubleClick={() => {
-                              this.editSegmentName(item, idx);
-                            }}
-                          >
-                            <span className={item.editing ? 'hide' : 'show'}>
-                              {item.name}
-                            </span>
-                            <input
-                              className="input-label-name"
-                              className={item.editing ? 'show' : 'hide'}
-                              type="text"
-                              defaultValue={item.name}
-                              onBlur={() => {
-                                this.handleBlur(item, event);
-                              }}
-                            />
-                          </td>
-                          <td>
-                            <span className="square green"></span>{' '}
-                            <img
-                              onClick={() => {
-                                this.removeSegment(idx);
-                              }}
-                              src="../images/worklist/delete.png"
-                              className="w8 un_ver"
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
+                  <tbody>
+                    <tr></tr>
                   </tbody>
                 </table>
               </div>
-            </div>
-            <div className="mpr-display">
-              <div className="mpr-2d-segment">
-                <div
-                  className="mpr-volumn-visual__ttl arrow-anim"
-                  data-toggle="collapse"
-                  data-target="#js-2dsegment-ctn"
-                >
-                  <img src="/images/new-icon/2d-segment.png" alt="" />
+
+              <div id="annotationListContent">
+                <div className="box-title">
+                  <img
+                    src="../images/new-icon/pen2x.png"
+                    alt="Label list"
+                    style={{ width: '16px' }}
+                  />
                   <span>2D Segmentation</span>
                 </div>
-                <div className="collapse in" id="js-2dsegment-ctn">
-                  <div className="mpr-display__func mpr-2d">
-                    <button
-                      className="mpr-display__func--item"
-                      title="MPR scroll"
-                      onClick={() => {
-                        this.handleActiveToolCnst('segmentation');
-                      }}
-                    >
-                      <img src="/images/new-icon/plus-outside.png" />
-                    </button>
-                    <button className="mpr-display__func--item" title="Rotate">
-                      <img src="/images/new-icon/circle-minus.png" />
-                    </button>
-                    <button className="mpr-display__func--item" title="Zoom">
-                      <img src="/images/new-icon/brush.png" />
-                    </button>
-                    <button className="mpr-display__func--item" title="Pan">
-                      <img src="/images/new-icon/eraser.png" />
-                    </button>
-                    <button
-                      className="mpr-display__func--item"
-                      title="Reset image"
-                    >
-                      <img src="/images/new-icon/paint.png" />
-                    </button>
-                    <button
-                      className="mpr-display__func--item"
-                      title="Windowing"
-                    >
-                      <img src="/images/new-icon/recyclebin.png" />
-                    </button>
-                    <button
-                      className="mpr-display__func--item"
-                      title="Reset image"
-                    >
-                      <img src="/images/new-icon/pen.png" />
-                    </button>
-                    <button
-                      className="mpr-display__func--item"
-                      title="Reset image"
-                    >
-                      <img src="/images/new-icon/cube.png" />
-                    </button>
-                    <button
-                      className="mpr-display__func--item"
-                      title="Crosshair"
-                    >
-                      <img
-                        src="/images/svg/crosshair.svg"
-                        style={{ color: '#c6c6c6' }}
-                        onClick={() => {
-                          this.handleActiveToolCnst('crosshair');
-                        }}
-                      />
-                    </button>
-                  </div>
+
+                <div className="mpr-display__func mpr-2d">
+                  <button
+                    alt=""
+                    className="mpr-display__func--item"
+                    title=""
+                    onClick={() => {
+                      this.handleActiveToolCnst('segmentation');
+                    }}
+                  >
+                    <img alt="" src="/images/new-icon/plus-outside.png" />
+                  </button>
+                  <button className="mpr-display__func--item" title="">
+                    <img alt="" src="/images/new-icon/circle-minus.png" />
+                  </button>
+                  <button className="mpr-display__func--item" title="">
+                    <img alt="" src="/images/new-icon/brush.png" />
+                  </button>
+                  <button className="mpr-display__func--item" title="">
+                    <img alt="" src="/images/new-icon/eraser.png" />
+                  </button>
+                  {/* <button className="mpr-display__func--item" title="">
+                    <img alt="" src="/images/new-icon/paint.png" />
+                  </button>
+                  <button className="mpr-display__func--item" title="">
+                    <img alt="" src="/images/new-icon/recyclebin.png" />
+                  </button>
+                  <button className="mpr-display__func--item" title="">
+                    <img alt="" src="/images/new-icon/pen.png" />
+                  </button>
+                  <button className="mpr-display__func--item" title="">
+                    <img alt="" src="/images/new-icon/cube.png" />
+                  </button> */}
+                  <button
+                    className="mpr-display__func--item"
+                    title="Crosshair"
+                    onClick={() => {
+                      this.handleActiveToolCnst('crosshair');
+                    }}
+                  >
+                    <img
+                      src="/images/svg/crosshair.svg"
+                      style={{ color: '#c6c6c6', width: '23px' }}
+                      alt=""
+                    />
+                  </button>
                 </div>
-              </div>
-            </div>
-            <div className="mpr-display">
-              <div className="mpr-2d-segment label-panel">
-                <div className="mpr-volumn-visual__ttl arrow-anim">
+
+                <div className="box-title">
                   <img
                     src="../images/new-icon/annotation_list.svg"
-                    className="w16"
+                    alt="Label list"
+                    style={{ width: '16px' }}
                   />
                   <span>Annotation List</span>
+                  <span>(1)</span>
                 </div>
                 <div className="box-content">
                   <div className="button-list">
-                    <button
-                      className="w-50"
-                      onClick={() => {
-                        this.setState({ typeDicom: 'xray' });
-                      }}
-                    >
-                      <img src="../images/new-icon/open-file-bbox.svg" /> Open
-                    </button>
-                    <button
-                      className="w-20"
-                      onClick={() => {
-                        this.getSegmentation();
-                      }}
-                    >
-                      GET
-                    </button>
-                    <button
-                      className="w-20"
-                      onClick={() => {
-                        this.setSegmentation();
-                      }}
-                    >
-                      SET
+                    <button className="w-50" style={{ position: 'relative' }}>
+                      <img src="../images/new-icon/open-file-bbox.svg" alt="" />
+                      <input
+                        id="inputFileLabel"
+                        type="file"
+                        accept="text/xml"
+                      />
+                      Import
                     </button>
                     <div id="link" ref={this.link}>
                       Click to me
                     </div>
                   </div>
                   <div className="table-wrap-anno">
-                    <input type="file" onChange={this.onChange} />
+                    <input
+                      type="file"
+                      onChange={this.onChange}
+                      style={{ display: 'none' }}
+                    />
                     <table className="label-list-table">
                       <thead>
                         <tr>
-                          <th></th>
+                          <th>No</th>
                           <th>Name</th>
                           <th>Color</th>
                           <th>Type</th>
@@ -904,11 +859,50 @@ class VTKCrosshairsExample extends Component {
                       </thead>
                       <tbody>
                         <tr>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
-                          <td></td>
+                          <td>
+                            <button>
+                              <img
+                                src="../images/new-icon/eye-btn-disable.png"
+                                alt=""
+                              />
+                            </button>
+                          </td>
+                          <td className="text-left">
+                            <span className="label-name">annotation 1</span>
+                          </td>
+                          <td>
+                            <input className="input-color-picker" readOnly />
+                          </td>
+                          <td>nifti</td>
+                          <td className="last">
+                            <button className="remove-label">
+                              <i className="fa fa-home" aria-hidden="true"></i>
+                            </button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <button>
+                              <img
+                                src="../images/new-icon/eye-btn-disable.png"
+                                alt=""
+                              />
+                            </button>
+                          </td>
+                          <td className="text-left">
+                            <span className="label-name">
+                              annotation labelName
+                            </span>
+                          </td>
+                          <td>
+                            <input className="input-color-picker" readOnly />
+                          </td>
+                          <td>nifti</td>
+                          <td className="last">
+                            <button className="remove-label">
+                              <i className="fa fa-home" aria-hidden="true"></i>
+                            </button>
+                          </td>
                         </tr>
                       </tbody>
                     </table>
@@ -916,100 +910,132 @@ class VTKCrosshairsExample extends Component {
                 </div>
               </div>
             </div>
-            <div className="mpr-display">
-              <div className="mpr-2d-segment label-panel">
-                <div className="mpr-volumn-visual__ttl arrow-anim">
-                  <img src="../images/new-icon/download.svg" className="w16" />
-                  <span>Download</span>
-                </div>
-                <div className="box-content collapse in">
-                  <div className="button-list no-border-bottom">
-                    <button className="w-50">
-                      <img src="../images/new-icon/save-btn-3d.svg" /> VOC
-                    </button>
-                    <button className="w-50">
-                      <img src="../images/new-icon/save-btn-3d.svg" /> CROP
-                    </button>
-                  </div>
-                </div>
+          </div>
+
+          <div className="display-panel f-left">
+            <div className="display-title title">Display</div>
+            <div className="display-panel-tool" id="label2d-panel">
+              <div className="item">
+                <button className="btnScroll viewBtn" title="Scroll Image">
+                  <img alt="" src="/images/new-icon/empty.png" />
+                </button>
+              </div>
+              <div className="item">
+                <button
+                  className="btnStackImage viewBtn btn btn-light"
+                  title="Stack Image"
+                >
+                  <img src="/images/new-icon/scroll.png" alt="" />
+                </button>
+              </div>
+              <div className="item">
+                <button className="btnPan viewBtn">
+                  <img
+                    alt=""
+                    src="/images/new-icon/pan.png"
+                    title="Pan Image"
+                  />
+                </button>
+              </div>
+              <div className="item">
+                <button className="btnZoom viewBtn">
+                  <img alt="" src="/images/new-icon/zoom.png" />
+                </button>
+              </div>
+              <div className="item">
+                <button className="btnWL viewBtn">
+                  <img alt="" src="/images/new-icon/windowing.png" />
+                </button>
+              </div>
+              <div className="item">
+                <button className="btnReset viewBtn" title="Reset Image">
+                  <img src="/images/new-icon/reset.png" alt="" />
+                </button>
               </div>
             </div>
           </div>
-
-          <div className="mpr-content">
-            <div className="col-xs-6 box-item-mpr p0" style={style}>
-              <span className="label box-name label-danger">Axial</span>
-              {typeDicom != 'xray' && (
-                <View2D
-                  volumes={this.state.volumes}
-                  onCreated={this.storeApi(2)}
-                  orientation={{ sliceNormal: [0, 0, 1], viewUp: [0, -1, 0] }}
-                />
-              )}
-              {typeDicom &&
-                typeDicom == 'xray' &&
-                this.state.cornerstoneViewportData && (
-                  <CornerstoneViewport
-                    activeTool={this.state.activeTool}
-                    availableTools={[
-                      { name: 'RectangleScissors', mouseButtonMasks: [1] },
-                      { name: 'StackScrollMouseWheel', mouseButtonMasks: [1] },
-                      { name: 'StackScrollMultiTouch', mouseButtonMasks: [1] },
-                      { name: 'Brush', mouseButtonMasks: [1] },
-                      { name: 'CircleScissors', mouseButtonMasks: [1] },
-                      { name: 'FreehandScissors', mouseButtonMasks: [1] },
-                      { name: 'RectangleScissors', mouseButtonMasks: [1] },
-                      { name: 'Wwwc', mouseButtonMasks: [1] },
-                      { name: 'Zoom', mouseButtonMasks: [1] },
-                    ]}
-                    viewportData={this.state.cornerstoneViewportData}
-                    onElementEnabled={this.saveCornerstoneElements(0)}
-                    className={className}
+        </div>
+        {/* END LEFT PANEL TOOL */}
+        <div className="right-mpr-tool">
+          {!this.state.volumes ||
+          !this.state.volumes.length ||
+          !this.state.volumeRenderingVolumes ? (
+            loading
+          ) : (
+            <div className="mpr-content">
+              <div className="box-item-mpr">
+                <span className="label box-name label-danger">Axial</span>
+                {typeDicom != 'xray' && (
+                  <View2D
+                    volumes={this.state.volumes}
+                    onCreated={this.storeApi(2)}
+                    orientation={{ sliceNormal: [0, 0, 1], viewUp: [0, -1, 0] }}
                   />
                 )}
-            </div>
+                {typeDicom &&
+                  typeDicom == 'xray' &&
+                  this.state.cornerstoneViewportData && (
+                    <CornerstoneViewport
+                      activeTool={this.state.activeTool}
+                      availableTools={[
+                        { name: 'RectangleScissors', mouseButtonMasks: [1] },
+                        {
+                          name: 'StackScrollMouseWheel',
+                          mouseButtonMasks: [1],
+                        },
+                        {
+                          name: 'StackScrollMultiTouch',
+                          mouseButtonMasks: [1],
+                        },
+                        { name: 'Brush', mouseButtonMasks: [1] },
+                        { name: 'CircleScissors', mouseButtonMasks: [1] },
+                        { name: 'FreehandScissors', mouseButtonMasks: [1] },
+                        { name: 'RectangleScissors', mouseButtonMasks: [1] },
+                        { name: 'Wwwc', mouseButtonMasks: [1] },
+                        { name: 'Zoom', mouseButtonMasks: [1] },
+                      ]}
+                      viewportData={this.state.cornerstoneViewportData}
+                      onElementEnabled={this.saveCornerstoneElements(0)}
+                      className={className}
+                    />
+                  )}
+              </div>
 
-            <div
-              className="col-xs-6 box-item-mpr p0"
-              style={{ width: '50%', height: '50%' }}
-            >
-              <span className={className}>
-                <span className="label box-name label-success">Sagittal</span>
-                <View2D
-                  volumes={this.state.volumes}
-                  onCreated={this.storeApi(1)}
-                  orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
-                />
-              </span>
-            </div>
+              <div className="box-item-mpr">
+                <span className={className}>
+                  <span className="label box-name label-success">Sagittal</span>
+                  <View2D
+                    volumes={this.state.volumes}
+                    onCreated={this.storeApi(1)}
+                    orientation={{ sliceNormal: [1, 0, 0], viewUp: [0, 0, 1] }}
+                  />
+                </span>
+              </div>
 
-            <div
-              className="col-xs-6 box-item-mpr p0"
-              style={{ width: '50%', height: '50%', marginTop: '15px' }}
-            >
-              <span className={className}>
-                <span className="label box-name label-primary">Coronal</span>
-                <View2D
-                  volumes={this.state.volumes}
-                  onCreated={this.storeApi(0)}
-                  orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
-                />
-              </span>
-            </div>
+              <div className="box-item-mpr">
+                <span className={className}>
+                  <span className="label box-name label-primary">Coronal</span>
+                  <View2D
+                    volumes={this.state.volumes}
+                    onCreated={this.storeApi(0)}
+                    orientation={{ sliceNormal: [0, 1, 0], viewUp: [0, 0, 1] }}
+                  />
+                </span>
+              </div>
 
-            <div
-              className="col-xs-6 box-item-mpr p0"
-              style={{ width: '50%', height: '50%', marginTop: '15px' }}
-            >
-              <span className={className}>
-                <span className="label box-name label-warning">3D Volums</span>
-                <View3D
-                  volumes={this.state.volumeRenderingVolumes}
-                  onCreated={this.saveApiReference}
-                />
-              </span>
+              <div className="box-item-mpr">
+                <span className={className}>
+                  <span className="label box-name label-warning">
+                    3D Volums
+                  </span>
+                  <View3D
+                    volumes={this.state.volumeRenderingVolumes}
+                    onCreated={this.saveApiReference}
+                  />
+                </span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     );
