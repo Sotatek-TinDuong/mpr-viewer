@@ -1,5 +1,6 @@
 import React from 'react';
 import { Component } from 'react';
+import $ from 'jquery';
 
 import {
   View2D,
@@ -616,6 +617,40 @@ class VTKCrosshairsExample extends Component {
     };
 
     console.log('params', obj);
+
+    const arr = new Uint8Array(obj.get3d.buffer).toString();
+    const buffer = new Uint8Array(arr.split(',')).buffer;
+
+    // console.log(arr);
+    // console.log(buffer);
+
+    var newFile = new File([arr], 'buffer.txt', { type: 'text/plain' });
+
+    // const blob = new Blob([arr], {
+    //   type: 'text/plain',
+    // });
+
+    // const objectURL = URL.createObjectURL(blob);
+    // node.href = objectURL;
+    // node.href = URL.createObjectURL(blob);
+    // node.download = 'buffer.txt';
+    // node.click();
+    this.download('buffer.txt', arr);
+  };
+
+  download = (filename, text) => {
+    const node = this.link;
+    var element = document.createElement('a');
+    element.setAttribute(
+      'href',
+      'data:text/plain;charset=utf-8,' + encodeURIComponent(text)
+    );
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    $('#link').append(element);
+
+    element.click();
   };
 
   setSegmentation = () => {
@@ -802,8 +837,16 @@ class VTKCrosshairsExample extends Component {
                       />
                       Import
                     </button>
+                    <div id="link" ref={this.link}>
+                      Click to me
+                    </div>
                   </div>
                   <div className="table-wrap-anno">
+                    <input
+                      type="file"
+                      onChange={this.onChange}
+                      style={{ display: 'none' }}
+                    />
                     <table className="label-list-table">
                       <thead>
                         <tr>
