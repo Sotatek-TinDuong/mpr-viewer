@@ -14,7 +14,7 @@ import {
 import { api as dicomwebClientApi } from 'dicomweb-client';
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import presets from './presets.js';
-import labelListManager from './labelListManager.js';
+import labelListManager from '../src/Label/labelListManager.js';
 import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction';
 import vtkPiecewiseFunction from 'vtk.js/Sources/Common/DataModel/PiecewiseFunction';
 import vtkVolume from 'vtk.js/Sources/Rendering/Core/Volume';
