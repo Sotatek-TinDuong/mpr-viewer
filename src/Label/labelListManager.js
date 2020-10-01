@@ -9,31 +9,26 @@ var getLabelList = async function() {
     .get(getUrl)
     .then(function(response) {
       // handle success
-      console.log(response);
       labelList = response.data.response.label_list;
     })
     .catch(function(error) {
       // handle error
-      console.log(error);
     })
     .then(function() {
       return labelList;
     });
+  return labelList;
 };
 
 var addLabelList = async function(params) {
-  console.log('Add label list');
-
   const postUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_ADD;
   await axios
     .post(postUrl)
     .then(function(response) {
       // handle success
-      console.log(response);
     })
     .catch(function(error) {
       // handle error
-      console.log(error);
     })
     .then(function() {
       // always executed
@@ -41,18 +36,14 @@ var addLabelList = async function(params) {
 };
 
 var updateLabelList = async function(params) {
-  console.log('Update label list');
-
   const patchUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_UPDATE;
   await axios
     .patch(patchUrl)
     .then(function(response) {
       // handle success
-      console.log(response);
     })
     .catch(function(error) {
       // handle error
-      console.log(error);
     })
     .then(function() {
       // always executed
@@ -60,18 +51,14 @@ var updateLabelList = async function(params) {
 };
 
 var deleteLabelList = async function(params) {
-  console.log('Delete label list');
-
   const deleteUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_DELETE;
   await axios
     .delete(deleteUrl)
     .then(function(response) {
       // handle success
-      console.log(response);
     })
     .catch(function(error) {
       // handle error
-      console.log(error);
     })
     .then(function() {
       // always executed

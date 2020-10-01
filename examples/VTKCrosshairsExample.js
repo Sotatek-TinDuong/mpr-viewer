@@ -26,6 +26,8 @@ import CornerstoneViewport from 'react-cornerstone-viewport';
 import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 import './initCornerstone.js';
+import LabelListItem from '../src/Label/LabelListItem.js';
+var labelList = [];
 
 const { getters, setters, configuration, state } = cornerstoneTools.getModule(
   'segmentation'
@@ -49,7 +51,7 @@ const searchInstanceOptions = {
   studyInstanceUID,
 };
 
-var labelList = labelListManager.getLabelList();
+labelListManager.getLabelList().then(res => (labelList = res));
 
 function createActorMapper(imageData) {
   const mapper = vtkVolumeMapper.newInstance();
@@ -715,52 +717,7 @@ class VTKCrosshairsExample extends Component {
                   </thead>
                   <tbody>
                     <tr></tr>
-                    <tr>
-                      <td>
-                        <button>
-                          <img
-                              src="../images/new-icon/eye-btn-disable.png"
-                              alt=""
-                          />
-                        </button>
-                      </td>
-                      <td className="text-left">
-                        <span className="label-name">annotation 1</span>
-                      </td>
-                      <td>
-                        <input className="input-color-picker" readOnly />
-                      </td>
-                      <td>nifti</td>
-                      <td className="last">
-                        <button className="remove-label" onClick={() => this.removeLabelList()}>
-                          <i className="fa fa-home" aria-hidden="true"></i>
-                        </button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <button>
-                          <img
-                              src="../images/new-icon/eye-btn-disable.png"
-                              alt=""
-                          />
-                        </button>
-                      </td>
-                      <td className="text-left">
-                            <span className="label-name">
-                              annotation labelName
-                            </span>
-                      </td>
-                      <td>
-                        <input className="input-color-picker" readOnly />
-                      </td>
-                      <td>nifti</td>
-                      <td className="last">
-                        <button className="remove-label">
-                          <i className="fa fa-home" aria-hidden="true"></i>
-                        </button>
-                      </td>
-                    </tr>
+                    <LabelListItem rows={labelList}/>
                   </tbody>
                 </table>
               </div>
