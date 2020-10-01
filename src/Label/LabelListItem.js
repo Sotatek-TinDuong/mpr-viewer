@@ -22,7 +22,13 @@ export default class LabelListItem extends Component {
             <span className="label-name">{d.labellist}</span>
           </td>
           <td>
-            <input className="input-color-picker" readOnly />
+            <input
+              className="input-color-picker"
+              style={{
+                backgroundColor: d.color,
+              }}
+              readOnly
+            />
           </td>
           <td>{d.type}</td>
           <td className="last">
