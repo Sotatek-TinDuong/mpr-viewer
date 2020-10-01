@@ -10,6 +10,7 @@ import {
   vtkInteractorStyleMPRCrosshairs,
   vtkSVGCrosshairsWidget,
 } from '@vtk-viewport';
+
 import { api as dicomwebClientApi } from 'dicomweb-client';
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import presets from './presets.js';
@@ -334,11 +335,9 @@ class VTKCrosshairsExample extends Component {
       cornerstoneViewportData: null,
       activeTool: 'FreehandScissors',
       typeDicom: typeDicom,
-      pxData: [],
       // label panel state
       labelListCreate: [],
     };
-    this.link = React.createRef();
   }
 
   async componentDidMount() {
@@ -573,34 +572,6 @@ class VTKCrosshairsExample extends Component {
     }
   };
 
-  // start func canh
-  handleClick = () => {
-    this.setState({ count: this.state.count + 2 });
-  };
-  addSegment = () => {
-    var index = this.state.sengments.length + 1;
-    var newName = 'segment ' + index;
-    this.state.sengments.push({ name: newName, editing: false });
-    this.setState({ sengments: this.state.sengments });
-  };
-  removeSegment = idx => {
-    this.state.sengments.splice(idx, 1);
-    this.setState({ sengments: this.state.sengments });
-  };
-  editSegmentName = (labelname, idx) => {
-    labelname.editing = true;
-    this.setState({ sengments: this.state.sengments });
-    setTimeout(() => {
-      $(input).focus();
-    }, 500);
-  };
-  handleBlur = (item, event) => {
-    item.editing = false;
-    item.name = event.target.value;
-    this.setState({ sengments: this.state.sengments });
-  };
-  //end func canh
-
   getSegmentation = () => {
     const element = this.cornerstoneElements[0];
 
@@ -616,30 +587,11 @@ class VTKCrosshairsExample extends Component {
       get3ds: get3ds,
     };
 
-    console.log('params', obj);
-
     const arr = new Uint8Array(obj.get3d.buffer).toString();
-    const buffer = new Uint8Array(arr.split(',')).buffer;
-
-    // console.log(arr);
-    // console.log(buffer);
-
-    var newFile = new File([arr], 'buffer.txt', { type: 'text/plain' });
-
-    // const blob = new Blob([arr], {
-    //   type: 'text/plain',
-    // });
-
-    // const objectURL = URL.createObjectURL(blob);
-    // node.href = objectURL;
-    // node.href = URL.createObjectURL(blob);
-    // node.download = 'buffer.txt';
-    // node.click();
     this.download('buffer.txt', arr);
   };
 
   download = (filename, text) => {
-    const node = this.link;
     var element = document.createElement('a');
     element.setAttribute(
       'href',
@@ -657,7 +609,6 @@ class VTKCrosshairsExample extends Component {
     const element = this.cornerstoneElements[0];
     setters.undo(element, 0);
     setters.labelmap3DForElement(element, this.state.pxData, 0);
-    console.log('set');
   };
 
   onChange = event => {
