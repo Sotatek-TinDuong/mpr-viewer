@@ -14,6 +14,7 @@ import {
 import { api as dicomwebClientApi } from 'dicomweb-client';
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import presets from './presets.js';
+import labelListManager from './labelListManager.js';
 import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction';
 import vtkPiecewiseFunction from 'vtk.js/Sources/Common/DataModel/PiecewiseFunction';
 import vtkVolume from 'vtk.js/Sources/Rendering/Core/Volume';
@@ -634,7 +635,12 @@ class VTKCrosshairsExample extends Component {
       type: 'nifti',
     };
     this.setState({ labelListCreate: params });
+    labelListManager.addLabelList(params);
   };
+
+  removeLabelList = () => {
+    labelListManager.removeLabelList(params);
+  }
 
   render() {
     const { typeDicom } = this.state;
@@ -724,7 +730,7 @@ class VTKCrosshairsExample extends Component {
                       </td>
                       <td>nifti</td>
                       <td className="last">
-                        <button className="remove-label">
+                        <button className="remove-label" onClick={() => this.removeLabelList()}>
                           <i className="fa fa-home" aria-hidden="true"></i>
                         </button>
                       </td>
