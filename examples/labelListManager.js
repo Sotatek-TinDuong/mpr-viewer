@@ -10,6 +10,7 @@ var getLabelList = async function() {
     .then(function(response) {
       // handle success
       console.log(response);
+      labelList = response.data.response.label_list;
     })
     .catch(function(error) {
       // handle error

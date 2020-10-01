@@ -49,6 +49,8 @@ const searchInstanceOptions = {
   studyInstanceUID,
 };
 
+var labelList = labelListManager.getLabelList();
+
 function createActorMapper(imageData) {
   const mapper = vtkVolumeMapper.newInstance();
   mapper.setInputData(imageData);
