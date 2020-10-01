@@ -707,6 +707,52 @@ class VTKCrosshairsExample extends Component {
                   </thead>
                   <tbody>
                     <tr></tr>
+                    <tr>
+                      <td>
+                        <button>
+                          <img
+                              src="../images/new-icon/eye-btn-disable.png"
+                              alt=""
+                          />
+                        </button>
+                      </td>
+                      <td className="text-left">
+                        <span className="label-name">annotation 1</span>
+                      </td>
+                      <td>
+                        <input className="input-color-picker" readOnly />
+                      </td>
+                      <td>nifti</td>
+                      <td className="last">
+                        <button className="remove-label">
+                          <i className="fa fa-home" aria-hidden="true"></i>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <button>
+                          <img
+                              src="../images/new-icon/eye-btn-disable.png"
+                              alt=""
+                          />
+                        </button>
+                      </td>
+                      <td className="text-left">
+                            <span className="label-name">
+                              annotation labelName
+                            </span>
+                      </td>
+                      <td>
+                        <input className="input-color-picker" readOnly />
+                      </td>
+                      <td>nifti</td>
+                      <td className="last">
+                        <button className="remove-label">
+                          <i className="fa fa-home" aria-hidden="true"></i>
+                        </button>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
