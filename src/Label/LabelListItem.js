@@ -13,11 +13,7 @@ export default class LabelListItem extends Component {
     return data.map(function(d, idx) {
       return (
         <tr key={d.id}>
-          <td>
-            <button>
-              <img src="../images/new-icon/eye-btn-disable.png" alt="" />
-            </button>
-          </td>
+          <td>{d.id}</td>
           <td className="text-left">
             <span className="label-name">{d.labellist}</span>
           </td>
