@@ -4,7 +4,7 @@ var labelList = [];
 
 var getLabelList = async function() {
   console.log('Get label list');
-  const getUrl = process.env.PACS_HOST + '/api/v1/labeling';
+  const getUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
   await axios
     .get(getUrl)
     .then(function(response) {
@@ -23,7 +23,7 @@ var getLabelList = async function() {
 var addLabelList = async function(params) {
   console.log('Add label list');
 
-  const postUrl = process.env.PACS_HOST + '/api/v1/labeling/save';
+  const postUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_ADD;
   await axios
     .post(postUrl)
     .then(function(response) {
@@ -42,7 +42,7 @@ var addLabelList = async function(params) {
 var updateLabelList = async function(params) {
   console.log('Update label list');
 
-  const patchUrl = process.env.PACS_HOST;
+  const patchUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_UPDATE;
   await axios
     .patch(patchUrl)
     .then(function(response) {
@@ -61,7 +61,7 @@ var updateLabelList = async function(params) {
 var deleteLabelList = async function(params) {
   console.log('Delete label list');
 
-  const deleteUrl = process.env.PACS_HOST + '/api/v1/labeling';
+  const deleteUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_DELETE;
   await axios
     .delete(deleteUrl)
     .then(function(response) {
