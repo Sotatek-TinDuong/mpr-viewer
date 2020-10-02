@@ -69,7 +69,7 @@ class LabelListItem extends Component {
           <td>{row.type}</td>
           <td className="last">
             <button className="remove-label" onClick={() => data.onDelete(row)}>
-              <i className="fa fa-home" aria-hidden="true"></i>
+              <i className="fa fa-home" aria-hidden="true" />
             </button>
           </td>
         </tr>
