@@ -643,13 +643,17 @@ class VTKCrosshairsExample extends Component {
     this.setState({ labelListCreate: params });
     labelListManager.addLabelList(params).then(res => {
       labelListManager.getLabelList().then(res2 => {
-        this.setState({ labelList: res2});
+        this.setState({ labelList: res2 });
       });
     });
   };
 
   removeLabelList = () => {
-    labelListManager.removeLabelList(params);
+    labelListManager.removeLabelList(params).then(res => {
+      labelListManager.getLabelList().then(res2 => {
+        this.setState({ labelList: res2 });
+      });
+    });
   }
 
   render() {
