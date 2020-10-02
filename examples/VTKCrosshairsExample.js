@@ -648,8 +648,8 @@ class VTKCrosshairsExample extends Component {
     });
   };
 
-  removeLabelList = () => {
-    labelListManager.removeLabelList(params).then(res => {
+  removeLabelList = (params) => {
+    labelListManager.deleteLabelList(params).then(res => {
       labelListManager.getLabelList().then(res2 => {
         this.setState({ labelList: res2 });
       });
@@ -727,7 +727,7 @@ class VTKCrosshairsExample extends Component {
                   </thead>
                   <tbody>
                     <tr></tr>
-                    <LabelListItem rows={this.state.labelList}/>
+                    <LabelListItem rows={this.state.labelList} onDelete={this.removeLabelList}/>
                   </tbody>
                 </table>
               </div>

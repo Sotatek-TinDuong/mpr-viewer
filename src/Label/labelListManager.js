@@ -50,7 +50,8 @@ var updateLabelList = async function(params) {
 };
 
 var deleteLabelList = async function(params) {
-  const deleteUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
+  const deleteUrl =
+    process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST + '/' + params.id;
   await axios
     .delete(deleteUrl)
     .then(function(response) {

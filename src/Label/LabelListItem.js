@@ -4,13 +4,14 @@ import { PropTypes } from 'prop-types';
 export default class LabelListItem extends Component {
   static propTypes = {
     rows: PropTypes.any,
+    onDelete: PropTypes.any,
   };
   render() {
-    var data = this.props.rows;
-    if (!data || data.length < 1) {
+    var data = this.props;
+    if (!data.rows || data.rows.length < 1) {
       return '';
     }
-    return data.map(function(d, idx) {
+    return data.rows.map(function(d, idx) {
       return (
         <tr key={d.id}>
           <td>{d.id}</td>
@@ -28,10 +29,7 @@ export default class LabelListItem extends Component {
           </td>
           <td>{d.type}</td>
           <td className="last">
-            <button
-              className="remove-label"
-              onClick={() => this.removeLabelList()}
-            >
+            <button className="remove-label" onClick={() => data.onDelete(d)}>
               <i className="fa fa-home" aria-hidden="true"></i>
             </button>
           </td>
