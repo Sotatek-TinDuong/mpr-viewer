@@ -3,8 +3,8 @@ const axios = require('axios');
 var labelList = [];
 
 var getLabelList = async function() {
-  console.log('Get label list');
-  const getUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
+  const getUrl =
+    process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST + '?type=nifti';
   await axios
     .get(getUrl)
     .then(function(response) {
@@ -21,7 +21,7 @@ var getLabelList = async function() {
 };
 
 var addLabelList = async function(params) {
-  const postUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_ADD;
+  const postUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
   await axios
     .post(postUrl)
     .then(function(response) {
@@ -36,7 +36,7 @@ var addLabelList = async function(params) {
 };
 
 var updateLabelList = async function(params) {
-  const patchUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_UPDATE;
+  const patchUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
   await axios
     .patch(patchUrl)
     .then(function(response) {
@@ -51,7 +51,7 @@ var updateLabelList = async function(params) {
 };
 
 var deleteLabelList = async function(params) {
-  const deleteUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_DELETE;
+  const deleteUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
   await axios
     .delete(deleteUrl)
     .then(function(response) {
