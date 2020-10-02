@@ -16,7 +16,7 @@ export default class LabelListItem extends Component {
         <tr key={d.id}>
           <td>{d.id}</td>
           <td className="text-left">
-            <span className="label-name">{d.labellist}</span>
+            <input className="label-name" value={d.labellist} />
           </td>
           <td>
             <input

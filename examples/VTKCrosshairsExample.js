@@ -338,7 +338,6 @@ class VTKCrosshairsExample extends Component {
       activeTool: 'FreehandScissors',
       typeDicom: typeDicom,
       // label panel state
-      labelListCreate: [],
       labelList: [],
     };
   }
@@ -633,14 +632,13 @@ class VTKCrosshairsExample extends Component {
 
   // label map function
   createLabel = () => {
-    const { labelListCreate } = this.state;
+    const { labelList } = this.state;
     let params = {
-      no: labelListCreate.length,
-      name: `Segmentation ${labelListCreate.length}`,
+      no: labelList.length,
+      name: `Segment ${labelList.length}`,
       color: '#ff0000',
       type: 'nifti',
     };
-    this.setState({ labelListCreate: params });
     labelListManager.addLabelList(params).then(res => {
       labelListManager.getLabelList().then(res2 => {
         this.setState({ labelList: res2 });

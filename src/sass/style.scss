@@ -307,6 +307,9 @@ ul {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          background-color: #343434;
+          max-width: 100%;
+          border:none
         }
         .input-label-name {
           width: 100%;
