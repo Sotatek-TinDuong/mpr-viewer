@@ -50,18 +50,20 @@ class LabelListItem extends Component {
               readOnly
             />
             {self.state.indexActive === idx ? (
-              <SketchPicker
-                color={row.color}
-                onChangeComplete={color => {
-                  if (color.hex !== row.color) {
-                    row.color = color.hex;
-                    data.onChange(row);
-                  }
-                  self.setState({
-                    indexActive: null,
-                  });
-                }}
-              />
+              <div className="sketch-picker-container">
+                <SketchPicker
+                  color={row.color}
+                  onChangeComplete={color => {
+                    if (color.hex !== row.color) {
+                      row.color = color.hex;
+                      data.onChange(row);
+                    }
+                    self.setState({
+                      indexActive: null,
+                    });
+                  }}
+                />
+              </div>
             ) : null}
           </td>
           <td>{row.type}</td>
