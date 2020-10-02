@@ -13,18 +13,18 @@ export default class LabelListItem extends Component {
     if (!data.rows || data.rows.length < 1) {
       return '';
     }
-    return data.rows.map(function(d, idx) {
+    return data.rows.map(function(row, idx) {
       return (
-        <tr key={d.id}>
-          <td>{d.id}</td>
+        <tr key={row.id}>
+          <td>{row.id}</td>
           <td className="text-left">
             <input
               className="label-name"
-              defaultValue={d.labellist}
+              defaultValue={row.labellist}
               onChange={e => {
-                if (e.target.value !== d.labellist) {
-                  d.labellist = e.target.value;
-                  data.onChange(d);
+                if (e.target.value !== row.labellist) {
+                  row.labellist = e.target.value;
+                  data.onChange(row);
                 }
               }}
             />
@@ -33,23 +33,23 @@ export default class LabelListItem extends Component {
             <input
               className="input-color-picker"
               style={{
-                backgroundColor: d.color,
+                backgroundColor: row.color,
               }}
               readOnly
             />
             <SketchPicker
-              color={d.color}
+              color={row.color}
               onChangeComplete={color => {
-                if (color.hex !== d.color) {
-                  d.color = color.hex;
-                  data.onChange(d);
+                if (color.hex !== row.color) {
+                  row.color = color.hex;
+                  data.onChange(row);
                 }
               }}
             />
           </td>
-          <td>{d.type}</td>
+          <td>{row.type}</td>
           <td className="last">
-            <button className="remove-label" onClick={() => data.onDelete(d)}>
+            <button className="remove-label" onClick={() => data.onDelete(row)}>
               <i className="fa fa-home" aria-hidden="true"></i>
             </button>
           </td>
