@@ -5,6 +5,7 @@ export default class LabelListItem extends Component {
   static propTypes = {
     rows: PropTypes.any,
     onDelete: PropTypes.any,
+    onChange: PropTypes.any,
   };
   render() {
     var data = this.props;
@@ -16,7 +17,16 @@ export default class LabelListItem extends Component {
         <tr key={d.id}>
           <td>{d.id}</td>
           <td className="text-left">
-            <input className="label-name" value={d.labellist} />
+            <input
+              className="label-name"
+              defaultValue={d.labellist}
+              onChange={e => {
+                if (e.target.value !== d.labellist) {
+                  d.labellist = e.target.value;
+                  data.onChange(d);
+                }
+              }}
+            />
           </td>
           <td>
             <input

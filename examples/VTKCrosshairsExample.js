@@ -639,7 +639,15 @@ class VTKCrosshairsExample extends Component {
       color: '#ff0000',
       type: 'nifti',
     };
-    labelListManager.addLabelList(params).then(res => {
+    labelListManager.createOrUpdateLabelList(params).then(res => {
+      labelListManager.getLabelList().then(res2 => {
+        this.setState({ labelList: res2 });
+      });
+    });
+  };
+
+  updateLabel = params => {
+    labelListManager.createOrUpdateLabelList(params).then(res => {
       labelListManager.getLabelList().then(res2 => {
         this.setState({ labelList: res2 });
       });
@@ -725,7 +733,7 @@ class VTKCrosshairsExample extends Component {
                   </thead>
                   <tbody>
                     <tr></tr>
-                    <LabelListItem rows={this.state.labelList} onDelete={this.removeLabelList}/>
+                    <LabelListItem rows={this.state.labelList} onDelete={this.removeLabelList} onChange={this.updateLabel}/>
                   </tbody>
                 </table>
               </div>
