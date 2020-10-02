@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { SketchPicker } from 'react-color';
 import { PropTypes } from 'prop-types';
 
 export default class LabelListItem extends Component {
@@ -35,6 +36,15 @@ export default class LabelListItem extends Component {
                 backgroundColor: d.color,
               }}
               readOnly
+            />
+            <SketchPicker
+              color={d.color}
+              onChangeComplete={color => {
+                if (color.hex !== d.color) {
+                  d.color = color.hex;
+                  data.onChange(d);
+                }
+              }}
             />
           </td>
           <td>{d.type}</td>
