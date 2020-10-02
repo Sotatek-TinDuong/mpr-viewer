@@ -3,10 +3,9 @@ const axios = require('axios');
 var labelList = [];
 
 var getLabelList = async function() {
-  const getUrl =
-    process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST + '?type=nifti';
+  const getUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
   await axios
-    .get(getUrl)
+    .get(getUrl, { params: { type: 'nifti' } })
     .then(function(response) {
       // handle success
       labelList = response.data.response.label_list;
@@ -23,7 +22,7 @@ var getLabelList = async function() {
 var addLabelList = async function(params) {
   const postUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
   await axios
-    .post(postUrl)
+    .post(postUrl, params)
     .then(function(response) {
       // handle success
     })
@@ -38,7 +37,7 @@ var addLabelList = async function(params) {
 var updateLabelList = async function(params) {
   const patchUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
   await axios
-    .patch(patchUrl)
+    .patch(patchUrl, params)
     .then(function(response) {
       // handle success
     })
