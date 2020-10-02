@@ -639,7 +639,11 @@ class VTKCrosshairsExample extends Component {
       type: 'nifti',
     };
     this.setState({ labelListCreate: params });
-    labelListManager.addLabelList(params);
+    labelListManager.addLabelList(params).then(res => {
+      labelListManager.getLabelList().then(res2 => {
+        labelList = res2;
+      });
+    });
   };
 
   removeLabelList = () => {
