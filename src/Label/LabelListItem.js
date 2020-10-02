@@ -2,7 +2,13 @@ import React, { Component } from 'react';
 import { SketchPicker } from 'react-color';
 import { PropTypes } from 'prop-types';
 
-export default class LabelListItem extends Component {
+class LabelListItem extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      indexActive: null,
+    };
+  }
   static propTypes = {
     rows: PropTypes.any,
     onDelete: PropTypes.any,
@@ -13,6 +19,7 @@ export default class LabelListItem extends Component {
     if (!data.rows || data.rows.length < 1) {
       return '';
     }
+    var self = this;
     return data.rows.map(function(row, idx) {
       return (
         <tr key={row.id}>
@@ -35,17 +42,27 @@ export default class LabelListItem extends Component {
               style={{
                 backgroundColor: row.color,
               }}
+              onClick={() => {
+                self.setState({
+                  indexActive: idx,
+                });
+              }}
               readOnly
             />
-            <SketchPicker
-              color={row.color}
-              onChangeComplete={color => {
-                if (color.hex !== row.color) {
-                  row.color = color.hex;
-                  data.onChange(row);
-                }
-              }}
-            />
+            {self.state.indexActive === idx ? (
+              <SketchPicker
+                color={row.color}
+                onChangeComplete={color => {
+                  if (color.hex !== row.color) {
+                    row.color = color.hex;
+                    data.onChange(row);
+                  }
+                  self.setState({
+                    indexActive: null,
+                  });
+                }}
+              />
+            ) : null}
           </td>
           <td>{row.type}</td>
           <td className="last">
@@ -58,3 +75,5 @@ export default class LabelListItem extends Component {
     });
   }
 }
+
+export default LabelListItem;

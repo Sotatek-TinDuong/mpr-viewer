@@ -732,7 +732,6 @@ class VTKCrosshairsExample extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr></tr>
                     <LabelListItem rows={this.state.labelList} onDelete={this.removeLabelList} onChange={this.updateLabel}/>
                   </tbody>
                 </table>
