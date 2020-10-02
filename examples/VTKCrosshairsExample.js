@@ -27,7 +27,6 @@ import cornerstone from 'cornerstone-core';
 import cornerstoneTools from 'cornerstone-tools';
 import './initCornerstone.js';
 import LabelListItem from '../src/Label/LabelListItem.js';
-var labelList = [];
 
 const { getters, setters, configuration, state } = cornerstoneTools.getModule(
   'segmentation'
@@ -50,8 +49,6 @@ const ctSeriesInstanceUID = serieUid;
 const searchInstanceOptions = {
   studyInstanceUID,
 };
-
-labelListManager.getLabelList().then(res => (labelList = res));
 
 function createActorMapper(imageData) {
   const mapper = vtkVolumeMapper.newInstance();
@@ -342,6 +339,7 @@ class VTKCrosshairsExample extends Component {
       typeDicom: typeDicom,
       // label panel state
       labelListCreate: [],
+      labelList: [],
     };
   }
 
@@ -422,6 +420,10 @@ class VTKCrosshairsExample extends Component {
         });
       });
     }
+
+    labelListManager
+      .getLabelList()
+      .then(res => this.setState({ labelList: res }));
   }
 
   saveApiReference = api => {
@@ -641,7 +643,7 @@ class VTKCrosshairsExample extends Component {
     this.setState({ labelListCreate: params });
     labelListManager.addLabelList(params).then(res => {
       labelListManager.getLabelList().then(res2 => {
-        labelList = res2;
+        this.setState({ labelList: res2});
       });
     });
   };
@@ -721,7 +723,7 @@ class VTKCrosshairsExample extends Component {
                   </thead>
                   <tbody>
                     <tr></tr>
-                    <LabelListItem rows={labelList}/>
+                    <LabelListItem rows={this.state.labelList}/>
                   </tbody>
                 </table>
               </div>
