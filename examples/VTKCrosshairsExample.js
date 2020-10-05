@@ -704,7 +704,7 @@ class VTKCrosshairsExample extends Component {
               <div className="box-title">
                 <img src="../images/new-icon/lbl-list.png" alt="Label list" />
                 <span>Label list</span>
-                <span>(1)</span>
+                <span>({this.state.labelList ? this.state.labelList.length : ''})</span>
               </div>
 
               <div className="box-content">
