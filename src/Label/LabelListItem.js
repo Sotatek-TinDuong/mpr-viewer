@@ -17,7 +17,7 @@ class LabelListItem extends Component {
   render() {
     var data = this.props;
     if (!data.rows || data.rows.length < 1) {
-      return '';
+      return null;
     }
     var self = this;
     return data.rows.map(function(row, idx) {
