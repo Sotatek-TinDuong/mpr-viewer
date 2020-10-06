@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 var saveArrayMapFile = async function(params) {
-  const postUrl = process.env.PACS_HOST + process.env.PACS_LABELLIST_LIST;
+  const postUrl = process.env.PACS_HOST + process.env.PACS_SAVE_ANNOTATION;
   await axios
     .post(postUrl, params)
     .then(function(response) {
